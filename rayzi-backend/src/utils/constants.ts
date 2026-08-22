@@ -1,0 +1,5 @@
+export const COIN_TO_DIAMOND_RATE = 10
+export const MIN_WITHDRAWAL_DIAMONDS = 1000
+export const MAX_CHAT_MESSAGE_LENGTH = 500
+export const DEFAULT_PAGE_SIZE = 20
+export const MAX_PAGE_SIZE = 100

@@ -1,0 +1,52 @@
+name: rayzi_app
+description: Rayzi Clone - Live Streaming App
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+  supabase_flutter: ^2.0.0
+  agora_rtc_engine: ^6.2.0
+  permission_handler: ^11.0.0
+  image_picker: ^1.0.0
+  video_player: ^2.8.0
+  chewie: ^1.7.0
+  cached_network_image: ^3.3.0
+  flutter_bloc: ^8.1.0
+  equatable: ^2.0.0
+  dio: ^5.4.0
+  socket_io_client: ^2.0.0
+  shared_preferences: ^2.2.0
+  flutter_secure_storage: ^9.0.0
+  flutter_local_notifications: ^18.0.0
+  firebase_messaging: ^14.7.0
+  firebase_core: ^2.24.0
+  flutter_screenutil: ^5.9.0
+  shimmer: ^3.0.0
+  flutter_staggered_grid_view: ^0.7.0
+  intl: ^0.18.0
+  pull_to_refresh: ^2.0.0
+  url_launcher: ^6.2.0
+  package_info_plus: ^5.0.0
+  path_provider: ^2.1.0
+  flutter_image_compress: ^2.1.0
+  uuid: ^4.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  integration_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/animations/

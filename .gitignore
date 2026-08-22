@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+.dart_tool/
+.packages
+.pub-cache/
+
+# Environment
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+*.env
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Flutter / Dart
+**/android/local.properties
+**/android/keystore/*.jks
+**/android/key.properties
+*.iml
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Secrets & local credentials
+ids.txt
+**/google-services.json
+rayzi-backend/.env

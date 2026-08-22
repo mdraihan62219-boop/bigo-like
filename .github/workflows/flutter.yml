@@ -1,0 +1,103 @@
+name: Flutter CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths: ['rayzi_app/**']
+  pull_request:
+    branches: [main]
+    paths: ['rayzi_app/**']
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./rayzi_app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
+
+  build-android:
+    needs: analyze
+    runs-on: ubuntu-latest
+    # Requires google-services.json (never committed) — skips until provided.
+    if: github.ref == 'refs/heads/main' && hashFiles('rayzi_app/android/app/google-services.json') != ''
+    defaults:
+      run:
+        working-directory: ./rayzi_app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Build App Bundle
+        run: flutter build appbundle --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: rayzi_app/build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-aab
+          path: rayzi_app/build/app/outputs/bundle/release/app-release.aab
+
+  build-ios:
+    needs: analyze
+    runs-on: macos-latest
+    # Skips until the ios/ platform folder is generated (`flutter create --platforms ios .`).
+    if: github.ref == 'refs/heads/main' && hashFiles('rayzi_app/ios/**') != ''
+    defaults:
+      run:
+        working-directory: ./rayzi_app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build iOS
+        run: flutter build ios --release --no-codesign

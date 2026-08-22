@@ -1,0 +1,7 @@
+process.env.NODE_ENV = 'test'
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key-for-ci-only-min-32-chars'
+process.env.SUPABASE_URL = process.env.SUPABASE_URL || 'https://placeholder.supabase.co'
+process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'placeholder-anon-key'
+process.env.SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-service-role-key'
+process.env.AGORA_APP_ID = process.env.AGORA_APP_ID || 'placeholder-agora-app-id'
+process.env.AGORA_APP_CERTIFICATE = process.env.AGORA_APP_CERTIFICATE || 'placeholder-agora-certificate'
