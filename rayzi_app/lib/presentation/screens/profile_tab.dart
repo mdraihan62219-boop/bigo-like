@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../config/routes.dart';
 import '../blocs/auth/auth_bloc.dart';
+import '../widgets/custom_button.dart';
 
 class ProfileTab extends StatelessWidget {
   const ProfileTab({super.key});
@@ -23,8 +24,7 @@ class ProfileTab extends StatelessWidget {
       body: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
           if (state is AuthAuthenticated) {
-            final metadata = state.user.userMetadata ?? {};
-            return SingleChildScrollView(
+            final metadata = state.user.userMetadata ?? {};            return SingleChildScrollView(
               padding: EdgeInsets.all(16.w),
               child: Column(
                 children: [
@@ -77,6 +77,39 @@ class ProfileTab extends StatelessWidget {
                     onTap: () {
                       context.read<AuthBloc>().add(AuthLogoutRequested());
                     },
+                  ),
+                ],
+              ),
+            );
+          }
+          if (state is AuthGuest) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.account_circle_outlined, size: 80.r, color: Colors.grey),
+                  SizedBox(height: 16.h),
+                  Text(
+                    'You are browsing as a guest',
+                    style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
+                  ),
+                  SizedBox(height: 8.h),
+                  Text(
+                    'Sign in to unlock your profile, wallet and gifts',
+                    style: TextStyle(fontSize: 14.sp, color: Colors.grey),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 24.h),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 48.w),
+                    child: CustomButton(
+                      text: 'Sign In / Sign Up',
+                      onPressed: () {
+                        Navigator.pushNamedAndRemoveUntil(
+                          context, AppRoutes.login, (route) => false,
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),

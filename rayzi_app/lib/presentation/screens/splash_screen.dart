@@ -25,6 +25,8 @@ class _SplashScreenState extends State<SplashScreen> {
           Navigator.pushReplacementNamed(context, AppRoutes.home);
         } else if (state is AuthUnauthenticated) {
           Navigator.pushReplacementNamed(context, AppRoutes.login);
+        } else if (state is AuthGuest) {
+          Navigator.pushReplacementNamed(context, AppRoutes.home);
         }
       },
       child: Scaffold(
@@ -34,7 +36,7 @@ class _SplashScreenState extends State<SplashScreen> {
             children: [
               Icon(Icons.live_tv, size: 80, color: Theme.of(context).primaryColor),
               const SizedBox(height: 20),
-              const Text('Rayzi', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+              const Text('PHM Live', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
               const SizedBox(height: 20),
               const CircularProgressIndicator(),
             ],

@@ -6,6 +6,7 @@ import helmet from 'helmet'
 import morgan from 'morgan'
 import compression from 'compression'
 import routes from './routes'
+import healthRoutes from './routes/health.routes'
 import { errorHandler } from './middleware/errorHandler'
 import { apiLimiter } from './middleware/rateLimiter'
 import { initSocket } from './socket'
@@ -35,14 +36,12 @@ const io = initSocket(server)
 app.use(helmet())
 app.use(cors({ origin: getAllowedOrigins(), credentials: true }))
 app.use(compression())
-app.use(morgan('combined'))
+app.use(morgan('combined', { skip: (req) => req.path === '/health' }))
 app.use(express.json({ limit: '1mb' }))
 app.use(express.urlencoded({ extended: true }))
 
 // Health check BEFORE the global limiter so it can never be throttled.
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() })
-})
+app.use(healthRoutes)
 
 app.use(apiLimiter)
 app.use('/api/v1', routes)

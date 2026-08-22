@@ -1,5 +1,5 @@
 class AppConstants {
-  static const String appName = 'Rayzi';
+  static const String appName = 'PHM Live';
 
   /// Override at build time for real devices:
   ///   flutter build apk --dart-define=API_BASE_URL=http://<your-lan-ip>:3000/api/v1 \

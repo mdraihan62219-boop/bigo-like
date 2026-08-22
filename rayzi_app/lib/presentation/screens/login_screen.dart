@@ -54,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(height: 24.h),
               BlocConsumer<AuthBloc, AuthState>(
                 listener: (context, state) {
-                  if (state is AuthAuthenticated) {
+                  if (state is AuthAuthenticated || state is AuthGuest) {
                     Navigator.pushReplacementNamed(context, AppRoutes.home);
                   } else if (state is AuthError) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -78,6 +78,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: TextButton(
                   onPressed: () => Navigator.pushNamed(context, AppRoutes.register),
                   child: const Text("Don't have an account? Sign Up"),
+                ),
+              ),
+              SizedBox(height: 8.h),
+              Center(
+                child: TextButton(
+                  onPressed: () => context.read<AuthBloc>().add(AuthGuestRequested()),
+                  child: Text(
+                    'Skip for now',
+                    style: TextStyle(fontSize: 14.sp, color: Colors.grey),
+                  ),
                 ),
               ),
             ],

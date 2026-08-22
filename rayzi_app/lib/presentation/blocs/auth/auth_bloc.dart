@@ -13,6 +13,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthLoginRequested>(_onLoginRequested);
     on<AuthRegisterRequested>(_onRegisterRequested);
     on<AuthLogoutRequested>(_onLogoutRequested);
+    on<AuthGuestRequested>(_onGuestRequested);
   }
 
   Future<void> _onAuthCheckRequested(AuthCheckRequested event, Emitter<AuthState> emit) async {
@@ -90,5 +91,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     await Supabase.instance.client.auth.signOut();
     await TokenStore.clear();
     emit(AuthUnauthenticated());
+  }
+
+  Future<void> _onGuestRequested(AuthGuestRequested event, Emitter<AuthState> emit) async {
+    await Supabase.instance.client.auth.signOut();
+    await TokenStore.clear();
+    emit(AuthGuest());
   }
 }
