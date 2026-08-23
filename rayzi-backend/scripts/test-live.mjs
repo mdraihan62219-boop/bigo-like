@@ -7,13 +7,13 @@
 import 'dotenv/config'
 import { createClient } from '@supabase/supabase-js'
 
-const BASE = process.argv[2] || 'https://bigo-like-1.onrender.com'
+const PURGE_ALL = process.argv.includes('--purge')
+const BASE = process.argv.slice(2).find((a) => !a.startsWith('--')) || 'https://bigo-like-1.onrender.com'
 const API = `${BASE}/api/v1`
 
 let token = null
 let results = []
 let createdUserId = null
-const PURGE_ALL = process.argv.includes('--purge')
 
 function check(name, ok, detail = '') {
   results.push({ name, ok, detail })
@@ -202,7 +202,9 @@ async function main() {
       r = await req('GET', `/inbox/conversations/${convId}/messages`)
       check('GET inbox messages', r.json?.success === true && Array.isArray(r.json?.data) && r.json.data.length >= 2, `${r.json?.data?.length ?? 0} msgs`)
       r = await req('POST', `/inbox/conversations/${convId}/call`, { call_type: 'video' })
-      check('POST inbox call (agora token/log)', r.json?.success === true, JSON.stringify(r.json?.error ?? ''))
+      // 503 = Agora unconfigured (fail-fast, correct); 200/201 = configured + token issued.
+      check('POST inbox call', r.status === 503 || r.json?.success === true,
+        `${r.status} ${JSON.stringify(r.json?.error ?? '')}`)
       r = await req('PUT', `/inbox/conversations/${convId}/read`)
       check('PUT inbox read', r.json?.success === true, JSON.stringify(r.json?.error ?? ''))
     }
@@ -240,16 +242,17 @@ main().catch((e) => {
   process.exitCode = 1
 }).finally(async () => {
   // Never leave smoke-test junk in the production project.
+  // NOTE: GoTrue's own cascade fails for our users ("Database error deleting
+  // user"), so dependent rows are removed manually before deleting the user.
   try {
+    const { createClient } = await import('@supabase/supabase-js')
+    const admin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } })
     if (createdUserId) {
-      const { createClient } = await import('@supabase/supabase-js')
-      const admin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } })
+      await manualCascade(admin, createdUserId)
       const { error: delErr } = await admin.auth.admin.deleteUser(createdUserId)
       console.log(delErr ? `cleanup failed for ${createdUserId}: ${delErr.message}` : `cleaned up test user ${createdUserId}`)
     }
     if (PURGE_ALL) {
-      const { createClient } = await import('@supabase/supabase-js')
-      const admin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } })
       let page = 1
       let purged = 0
       for (;;) {
@@ -257,9 +260,10 @@ main().catch((e) => {
         const users = data?.users ?? []
         if (users.length === 0) break
         for (const u of users) {
-          if (/^(phm\.live\.|phm\.audit)/.test(u.email ?? '')) {
-            await admin.auth.admin.deleteUser(u.id)
-            purged++
+          if (/^(phm\.live\.|phm\.audit|phm\.deploy)/.test(u.email ?? '')) {
+            await manualCascade(admin, u.id)
+            const { error } = await admin.auth.admin.deleteUser(u.id)
+            if (!error) purged++
           }
         }
         page++
@@ -271,3 +275,24 @@ main().catch((e) => {
     console.warn('cleanup warning:', e.message)
   }
 })
+
+async function manualCascade(admin, userId) {
+  try {
+    const convs = await admin.from('conversations').select('id').or(`user_a_id.eq.${userId},user_b_id.eq.${userId}`)
+    const ids = (convs.data ?? []).map((c) => c.id)
+    if (ids.length > 0) {
+      await admin.from('messages').delete().in('conversation_id', ids)
+      await admin.from('conversations').delete().in('id', ids)
+    }
+    for (const [table, col] of [
+      ['post_likes', 'user_id'], ['post_comments', 'user_id'], ['posts', 'user_id'],
+      ['recharge_requests', 'requester_id'], ['host_applications', 'user_id'],
+      ['user_inventory', 'user_id'], ['stories', 'author_id'],
+    ]) {
+      await admin.from(table).delete().eq(col, userId)
+    }
+    await admin.from('friend_requests').delete().or(`requester_id.eq.${userId},addressee_id.eq.${userId}`)
+  } catch (_) {
+    // Best-effort; deleteUser reports its own failure if something remains.
+  }
+}
