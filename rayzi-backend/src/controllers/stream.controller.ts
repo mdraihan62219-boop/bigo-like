@@ -75,8 +75,11 @@ export class StreamController {
 
       // C5 fix: private streams now actually require the password (hashed
       // compare) before an Agora token is issued to anyone but the host.
+      // Accept it from body or query so GET-based clients work too.
       if (stream.is_private && !isHost) {
-        const supplied = typeof req.body?.password === 'string' ? req.body.password : ''
+        const supplied = typeof req.body?.password === 'string' && req.body.password
+          ? req.body.password
+          : typeof req.query.password === 'string' ? req.query.password : ''
         if (!supplied || !stream.password || !(await bcrypt.compare(supplied, stream.password))) {
           return error(res, 403, 'Stream password required or incorrect')
         }
@@ -85,7 +88,7 @@ export class StreamController {
       const uid = parseInt(req.user!.id.replace(/-/g, '').slice(0, 8), 16)
       const token = AgoraService.generateToken(stream.channel_name, uid, isHost ? 'host' : 'audience')
 
-      return success(res, { token, channel_name: stream.channel_name, is_host: isHost })
+      return success(res, { token, channel_name: stream.channel_name, is_host: isHost, uid })
     } catch (err: any) {
       return error(res, 500, err.message)
     }

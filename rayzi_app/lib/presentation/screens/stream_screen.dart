@@ -17,6 +17,7 @@ class StreamScreen extends StatefulWidget {
 class _StreamScreenState extends State<StreamScreen> {
   bool _isLoading = true;
   String? _token;
+  String? _channelName;
   bool _isHost = false;
   int _uid = 0;
   int? _remoteUid;
@@ -61,15 +62,27 @@ class _StreamScreenState extends State<StreamScreen> {
       await AgoraService.initialize();
       await AgoraService.requestPermissions();
 
-      final response = await ApiService.get('/streams/${widget.stream['id']}/token');
+      final tokenArgs = <String, dynamic>{};
+      final argsPassword = widget.stream['password'];
+      if (argsPassword is String && argsPassword.isNotEmpty) {
+        tokenArgs['password'] = argsPassword;
+      }
+      final response = await ApiService.get(
+        '/streams/${widget.stream['id']}/token',
+        queryParameters: tokenArgs.isEmpty ? null : tokenArgs,
+      );
+      // The RTC token is bound to a server-derived uid — always use the
+      // uid returned by the backend, never a client-side derivation.
       _token = response.data['data']['token'];
       _isHost = response.data['data']['is_host'];
+      _uid = response.data['data']['uid'] as int? ?? _uidFromUser();
+      _channelName =
+          response.data['data']['channel_name'] as String? ?? widget.stream['channel_name'];
 
-      _uid = _uidFromUser();
       _registerAgoraHandlers();
 
       await AgoraService.joinChannel(
-        widget.stream['channel_name'],
+        _channelName!,
         _token!,
         _uid,
         _isHost,

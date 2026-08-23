@@ -1,17 +1,17 @@
 class AppConstants {
   static const String appName = 'PHM Live';
 
-  /// Override at build time for real devices:
+  /// Override at build time for local development:
   ///   flutter build apk --dart-define=API_BASE_URL=http://<your-lan-ip>:3000/api/v1 \
   ///                    --dart-define=SOCKET_URL=http://<your-lan-ip>:3000
-  /// Default 10.0.2.2 = Android emulator loopback to the host machine.
+  /// Production default: Render deployment.
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://10.0.2.2:3000/api/v1',
+    defaultValue: 'https://bigo-like-1.onrender.com/api/v1',
   );
   static const String socketUrl = String.fromEnvironment(
     'SOCKET_URL',
-    defaultValue: 'http://10.0.2.2:3000',
+    defaultValue: 'https://bigo-like-1.onrender.com',
   );
 
   static const String supabaseUrl = 'https://yuokeoduqtxgfdlwuaaw.supabase.co';
