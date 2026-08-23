@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../config/routes.dart';
 import '../../services/api_service.dart';
 import '../../services/storage_service.dart';
 import '../shared/decorated_widgets.dart';
+import '../../presentation/screens/reels_screen.dart' show openReelsViewer;
 
 class NewsfeedScreen extends StatefulWidget {
   const NewsfeedScreen({super.key});
@@ -48,15 +50,43 @@ class _NewsfeedScreenState extends State<NewsfeedScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Newsfeed'),
+        titleSpacing: 8.w,
+        title: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10.r),
+              child: const Image(
+                image: AssetImage('assets/images/logo.jpeg'),
+                width: 28,
+                height: 28,
+                fit: BoxFit.cover,
+              ),
+            ),
+            SizedBox(width: 8.w),
+            const Text('Newsfeed'),
+          ],
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_box_outlined),
-            tooltip: 'Create post',
-            onPressed: () async {
-              await Navigator.pushNamed(context, '/create-post');
-              _load();
-            },
+            icon: const Icon(Icons.notifications_none),
+            onPressed: () => Navigator.pushNamed(context, AppRoutes.notifications),
+          ),
+          IconButton(
+            icon: Icon(Icons.workspace_premium, color: Colors.amber.shade300),
+            tooltip: 'VIP',
+            onPressed: () => Navigator.pushNamed(context, '/shop-tier', arguments: 'vip'),
+          ),
+          Padding(
+            padding: EdgeInsets.only(right: 10.w, left: 2.w),
+            child: TextButton(
+              onPressed: () async {
+                await Navigator.pushNamed(context, AppRoutes.createPost);
+                _load();
+              },
+              child: Text('POST',
+                  style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary)),
+            ),
           ),
         ],
         bottom: PreferredSize(
@@ -237,13 +267,16 @@ class PostCard extends StatelessWidget {
               child: CachedNetworkImage(imageUrl: urls.first as String, fit: BoxFit.cover),
             )
           else if (isVideo)
-            Stack(alignment: Alignment.center, children: [
-              AspectRatio(
-                aspectRatio: 1.4,
-                child: Container(color: Colors.black54),
-              ),
-              const Icon(Icons.play_circle_fill, size: 52, color: Colors.white70),
-            ]),
+            GestureDetector(
+              onTap: () => openReelsViewer(context, [post], 0),
+              child: Stack(alignment: Alignment.center, children: [
+                AspectRatio(
+                  aspectRatio: 1.4,
+                  child: Container(color: Colors.black54),
+                ),
+                const Icon(Icons.play_circle_fill, size: 52, color: Colors.white70),
+              ]),
+            ),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 8.w),
             child: Row(children: [

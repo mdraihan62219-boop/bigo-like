@@ -7,6 +7,7 @@ import '../../services/api_service.dart';
 import '../blocs/auth/auth_bloc.dart';
 import '../widgets/custom_button.dart';
 import '../../features/shared/decorated_widgets.dart';
+import 'leaderboard_screen.dart' show showLeaderboardSheet;
 
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
@@ -103,7 +104,8 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                   SizedBox(height: 16.h),
                   _menu(Icons.account_balance_wallet, 'Wallet', AppRoutes.wallet),
-                  _menu(Icons.emoji_events, 'Leaderboard', AppRoutes.leaderboard),
+                  _menu(Icons.emoji_events, 'Leaderboard', null,
+                      onTap: () => showLeaderboardSheet(context)),
                   _menu(Icons.workspace_premium, 'Shop (KING / CROWN / VVIP / VIP)', '/shop'),
                   _menu(Icons.card_giftcard, 'My Items', '/inventory'),
                   _menu(Icons.receipt_long, 'Recharge from Reseller', '/reseller-recharge'),
@@ -171,12 +173,12 @@ class _ProfileTabState extends State<ProfileTab> {
     );
   }
 
-  Widget _menu(IconData icon, String label, String routeName) {
+  Widget _menu(IconData icon, String label, String? routeName, {VoidCallback? onTap}) {
     return ListTile(
       leading: Icon(icon),
       title: Text(label, style: TextStyle(fontSize: 14.sp)),
       trailing: const Icon(Icons.chevron_right),
-      onTap: () => Navigator.pushNamed(context, routeName).then((_) => _loadSummary()),
+      onTap: onTap ?? () => Navigator.pushNamed(context, routeName!).then((_) => _loadSummary()),
     );
   }
 

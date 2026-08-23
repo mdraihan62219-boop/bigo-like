@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../config/routes.dart';
 import 'live_tab.dart';
-import 'explore_tab.dart';
+import 'profile_tab.dart';
+import '../../features/feed/feed_screens.dart';
 import 'reels_screen.dart';
 import 'rooms_tab.dart';
-import 'profile_tab.dart';
 import '../../features/inbox/inbox_screens.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -19,7 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final _tabs = const [
     LiveTab(),
-    ExploreTab(),
+    NewsfeedScreen(),
     ReelsTab(),
     RoomsTab(),
     InboxListScreen(),
@@ -39,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
         showUnselectedLabels: true,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.live_tv), label: 'Live'),
-          BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
+          BottomNavigationBarItem(icon: Icon(Icons.article), label: 'Feed'),
           BottomNavigationBarItem(icon: Icon(Icons.movie), label: 'Reels'),
           BottomNavigationBarItem(icon: Icon(Icons.meeting_room), label: 'Rooms'),
           BottomNavigationBarItem(icon: Icon(Icons.message), label: 'Messages'),

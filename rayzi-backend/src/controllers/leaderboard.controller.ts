@@ -3,7 +3,7 @@ import { supabase } from '../config/database'
 import { success, error } from '../utils/response'
 import { AuthenticatedRequest } from '../types'
 
-const PROFILE_JOIN = `id, username, display_name, avatar_url, is_verified, equipped_frame_id, equipped_badge_id, name_effect, equipped_frame:shop_items!profiles_equipped_frame_id_fkey(id, tier)`
+const PROFILE_JOIN = `id, username, display_name, avatar_url, is_verified, role, equipped_frame_id, equipped_badge_id, name_effect, equipped_frame:shop_items!profiles_equipped_frame_id_fkey(id, tier)`
 
 export class LeaderboardController {
   static async get(req: AuthenticatedRequest, res: Response) {
