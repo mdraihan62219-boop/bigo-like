@@ -12,6 +12,8 @@ const API = `${BASE}/api/v1`
 
 let token = null
 let results = []
+let createdUserId = null
+const PURGE_ALL = process.argv.includes('--purge')
 
 function check(name, ok, detail = '') {
   results.push({ name, ok, detail })
@@ -61,6 +63,7 @@ async function main() {
     user_metadata: { username, display_name: 'PHM Live Test' },
   })
   check('admin createUser', !createErr && !!created?.user, createErr?.message ?? '')
+  createdUserId = created?.user?.id ?? null
 
   let r
   r = await req('POST', '/auth/login', { email, password }, false)
@@ -227,11 +230,44 @@ function report() {
   if (failed.length) {
     console.log('FAILED:')
     for (const f of failed) console.log(`  - ${f.name}${f.detail ? ` (${f.detail})` : ''}`)
-    process.exit(1)
+    // Not process.exit() here — that would skip the cleanup in finally.
+    process.exitCode = 1
   }
 }
 
 main().catch((e) => {
   console.error(e)
-  process.exit(1)
+  process.exitCode = 1
+}).finally(async () => {
+  // Never leave smoke-test junk in the production project.
+  try {
+    if (createdUserId) {
+      const { createClient } = await import('@supabase/supabase-js')
+      const admin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } })
+      const { error: delErr } = await admin.auth.admin.deleteUser(createdUserId)
+      console.log(delErr ? `cleanup failed for ${createdUserId}: ${delErr.message}` : `cleaned up test user ${createdUserId}`)
+    }
+    if (PURGE_ALL) {
+      const { createClient } = await import('@supabase/supabase-js')
+      const admin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } })
+      let page = 1
+      let purged = 0
+      for (;;) {
+        const { data } = await admin.auth.admin.listUsers({ page, perPage: 200 })
+        const users = data?.users ?? []
+        if (users.length === 0) break
+        for (const u of users) {
+          if (/^(phm\.live\.|phm\.audit)/.test(u.email ?? '')) {
+            await admin.auth.admin.deleteUser(u.id)
+            purged++
+          }
+        }
+        page++
+        if (page > 20) break
+      }
+      console.log(`purged ${purged} legacy smoke-test users`)
+    }
+  } catch (e) {
+    console.warn('cleanup warning:', e.message)
+  }
 })

@@ -2,8 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../services/api_service.dart';
+import '../../services/socket_service.dart';
 
-/// PK battle state polled from /pk/battles/:id with dragon stage rendering.
+/// PK battle view: realtime score/dragon pushes via Socket.IO, with a slow
+/// REST poll as a fallback resync (not the primary mechanism).
 class PkBattleView extends StatefulWidget {
   const PkBattleView({super.key, required this.battleId});
   final String battleId;
@@ -14,18 +16,38 @@ class PkBattleView extends StatefulWidget {
 
 class _PkBattleViewState extends State<PkBattleView> {
   Map<String, dynamic>? _battle;
-  Timer? _timer;
+  Timer? _resyncTimer;
 
   @override
   void initState() {
     super.initState();
     _load();
-    _timer = Timer.periodic(const Duration(seconds: 3), (_) => _load());
+    _subscribeRealtime();
+    // Fallback resync only — socket push is the primary feed.
+    _resyncTimer = Timer.periodic(const Duration(seconds: 15), (_) => _load());
+  }
+
+  void _subscribeRealtime() async {
+    await SocketService.connect();
+    SocketService.joinBattle(widget.battleId);
+    SocketService.onPkScoreUpdate((data) {
+      if (!mounted || data is! Map) return;
+      final event = Map<String, dynamic>.from(data);
+      if (event['battleId']?.toString() != widget.battleId) return;
+      final b = Map<String, dynamic>.from(_battle ?? {});
+      if ((event['scoreA'] as num?) != null) b['score_1'] = event['scoreA'];
+      if ((event['scoreB'] as num?) != null) b['score_2'] = event['scoreB'];
+      if ((event['dragonStageA'] as num?) != null) b['dragon_stage_1'] = event['dragonStageA'];
+      if ((event['dragonStageB'] as num?) != null) b['dragon_stage_2'] = event['dragonStageB'];
+      setState(() => _battle = b);
+    });
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _resyncTimer?.cancel();
+    SocketService.offPkScoreUpdate();
+    SocketService.leaveBattle(widget.battleId);
     super.dispose();
   }
 
@@ -35,7 +57,7 @@ class _PkBattleViewState extends State<PkBattleView> {
       if (!mounted) return;
       setState(() => _battle = response.data['data']);
       final status = _battle?['status'];
-      if (status == 'ended' || status == 'forfeited') _timer?.cancel();
+      if (status == 'ended' || status == 'forfeited') _resyncTimer?.cancel();
     } catch (_) {}
   }
 

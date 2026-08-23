@@ -19,6 +19,7 @@ import friendRoutes from './friend.routes'
 import profileExtrasRoutes from './profileExtras.routes'
 import pkRoutes from './pk.routes'
 import inboxRoutes from './inbox.routes'
+import uploadRoutes from './upload.routes'
 
 const router = Router()
 
@@ -42,5 +43,6 @@ router.use('/friends', friendRoutes)
 router.use('/profile', profileExtrasRoutes)
 router.use('/pk', pkRoutes)
 router.use('/inbox', inboxRoutes)
+router.use('/uploads', uploadRoutes)
 
 export default router

@@ -17,14 +17,17 @@ export class InboxController {
       const conv = await InboxService.getConversation(req.user!.id, req.params.id)
       if (!conv) return error(res, 404, 'Conversation not found')
       const callType = req.body?.call_type === 'video' ? 'video' : 'audio'
-      const { AgoraService } = await import('../services/agora.service')
+      const { AgoraService, AgoraNotConfiguredError } = await import('../services/agora.service')
       // Channel name is deterministic so both sides join the same room.
       const channel = `inbox_${conv.id}`
-      let token: string | null = null
+      let token: string
       try {
         token = AgoraService.generateToken(channel, Math.abs(hashId(req.user!.id)), 'host')
-      } catch (_) {
-        // Agora not configured — still log the attempt.
+      } catch (agoraErr) {
+        if (agoraErr instanceof AgoraNotConfiguredError) {
+          return error(res, 503, 'Agora not configured')
+        }
+        throw agoraErr
       }
       await InboxService.sendMessage(req.user!.id, conv.id, {
         message_type: 'call_log', call_type: callType,

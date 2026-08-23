@@ -1,7 +1,7 @@
 import { Response } from 'express'
 import bcrypt from 'bcryptjs'
 import { supabase } from '../config/database'
-import { AgoraService } from '../services/agora.service'
+import { AgoraService, AgoraNotConfiguredError } from '../services/agora.service'
 import { NotificationService } from '../services/notification.service'
 import { success, error } from '../utils/response'
 import { pageParam, limitParam } from '../utils/pagination'
@@ -29,11 +29,19 @@ export class StreamController {
       }
 
       const channelName = AgoraService.generateChannelName(req.user!.id)
-      const agoraToken = AgoraService.generateToken(
-        channelName,
-        parseInt(req.user!.id.replace(/-/g, '').slice(0, 8), 16),
-        'host'
-      )
+      let agoraToken: string
+      try {
+        agoraToken = AgoraService.generateToken(
+          channelName,
+          parseInt(req.user!.id.replace(/-/g, '').slice(0, 8), 16),
+          'host'
+        )
+      } catch (agoraErr) {
+        if (agoraErr instanceof AgoraNotConfiguredError) {
+          return error(res, 503, 'Agora not configured')
+        }
+        throw agoraErr
+      }
 
       // C5 fix: never persist the plaintext password.
       const hashedPassword = is_private && password
@@ -86,7 +94,15 @@ export class StreamController {
       }
 
       const uid = parseInt(req.user!.id.replace(/-/g, '').slice(0, 8), 16)
-      const token = AgoraService.generateToken(stream.channel_name, uid, isHost ? 'host' : 'audience')
+      let token: string
+      try {
+        token = AgoraService.generateToken(stream.channel_name, uid, isHost ? 'host' : 'audience')
+      } catch (agoraErr) {
+        if (agoraErr instanceof AgoraNotConfiguredError) {
+          return error(res, 503, 'Agora not configured')
+        }
+        throw agoraErr
+      }
 
       return success(res, { token, channel_name: stream.channel_name, is_host: isHost, uid })
     } catch (err: any) {

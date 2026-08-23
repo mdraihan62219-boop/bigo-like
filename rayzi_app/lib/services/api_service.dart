@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../config/constants.dart';
+import 'session_events.dart';
 import 'token_store.dart';
 
 class ApiService {
@@ -19,14 +20,17 @@ class ApiService {
         }
         return handler.next(options);
       },
-      onError: (error, handler) async {
-        if (error.response?.statusCode == 401) {
-          // Session is no longer valid — drop the stored token so the next
-          // auth check returns the user to login instead of looping on 401s.
-          await TokenStore.clear();
-        }
-        return handler.next(error);
-      },
+        onError: (error, handler) async {
+          if (error.response?.statusCode == 401) {
+            // Session is no longer valid — drop the stored token and notify
+            // the root navigator to bounce to login. Guests (no stored token
+            // to begin with) never trigger the event.
+            final hadToken = (await TokenStore.read())?.isNotEmpty == true;
+            await TokenStore.clear();
+            if (hadToken) SessionEvents.emitSessionExpired();
+          }
+          return handler.next(error);
+        },
     ));
   }
 

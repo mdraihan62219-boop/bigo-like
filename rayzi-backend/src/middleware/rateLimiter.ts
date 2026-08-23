@@ -9,6 +9,12 @@ import Redis from 'ioredis'
  *   in-memory fallback for local dev.
  * - /health must stay exempt so container HEALTHCHECKs and external
  *   monitors can never exhaust the shared bucket.
+ *
+ * SCALE NOTE: the in-memory fallback is per-instance. This is fine for the
+ * current single Render instance, but if the service is ever scaled
+ * horizontally (or restarted frequently), configure a shared Redis
+ * (e.g. Upstash) via REDIS_HOST/REDIS_PORT/REDIS_PASSWORD — otherwise each
+ * instance keeps its own bucket and effective limits multiply.
  */
 
 const redisClient = process.env.REDIS_HOST ? new Redis({

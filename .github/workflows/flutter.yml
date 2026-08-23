@@ -60,11 +60,19 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      # Integration credentials arrive as repo secrets; empty values keep the
+      # build green while the app surfaces a clean "not configured" state.
       - name: Build APK
-        run: flutter build apk --release
+        run: >
+          flutter build apk --release
+          --dart-define=GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID }}
+          --dart-define=AGORA_APP_ID=${{ secrets.AGORA_APP_ID }}
 
       - name: Build App Bundle
-        run: flutter build appbundle --release
+        run: >
+          flutter build appbundle --release
+          --dart-define=GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID }}
+          --dart-define=AGORA_APP_ID=${{ secrets.AGORA_APP_ID }}
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -100,4 +108,7 @@ jobs:
         run: flutter pub get
 
       - name: Build iOS
-        run: flutter build ios --release --no-codesign
+        run: >
+          flutter build ios --release --no-codesign
+          --dart-define=GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID }}
+          --dart-define=AGORA_APP_ID=${{ secrets.AGORA_APP_ID }}

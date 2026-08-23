@@ -25,6 +25,18 @@ if (missing.length > 0 && process.env.NODE_ENV !== 'test') {
   process.exit(1)
 }
 
+// Fail-fast WARNINGS for optional integrations still on placeholders —
+// the endpoints themselves return 503 instead of silently misbehaving.
+{
+  const placeholder = (v?: string) => !v || /your-|placeholder|xxx|changeme/i.test(v)
+  if (placeholder(process.env.AGORA_APP_ID) || placeholder(process.env.AGORA_APP_CERTIFICATE)) {
+    logger.warn('[WARN] AGORA_APP_ID / AGORA_APP_CERTIFICATE are missing or placeholders — live streaming, calls and PK tokens will return 503 until real credentials are set.')
+  }
+  if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_PRIVATE_KEY || !process.env.FIREBASE_CLIENT_EMAIL) {
+    logger.warn('[WARN] Firebase env vars not set — push notifications disabled.')
+  }
+}
+
 const app = express()
 const server = http.createServer(app)
 

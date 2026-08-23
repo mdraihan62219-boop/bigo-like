@@ -2,11 +2,24 @@ import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../config/constants.dart';
 
+/// Thrown instead of a raw AgoraRtcException(-101) when the app was built
+/// without a real AGORA_APP_ID dart-define.
+class AgoraConfigurationException implements Exception {
+  final String message;
+  const AgoraConfigurationException([this.message =
+      'Agora is not configured. Build with --dart-define=AGORA_APP_ID=<your-real-app-id>']);
+  @override
+  String toString() => message;
+}
+
 class AgoraService {
   static RtcEngine? _engine;
 
+  static bool get isConfigured => AppConstants.agoraAppId.isNotEmpty;
+
   static Future<void> initialize() async {
     if (_engine != null) return;
+    if (!isConfigured) throw const AgoraConfigurationException();
     _engine = createAgoraRtcEngine();
     await _engine!.initialize(RtcEngineContext(
       appId: AppConstants.agoraAppId,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/agora_service.dart';
@@ -102,8 +103,16 @@ class _StreamScreenState extends State<StreamScreen> {
       if (mounted) setState(() => _isLoading = false);
     } catch (e) {
       if (mounted) {
+        String message;
+        if (e is AgoraConfigurationException) {
+          message = e.message;
+        } else if (e is DioException && e.response?.statusCode == 503) {
+          message = 'Live streaming is not configured yet — please check back soon';
+        } else {
+          message = 'Failed to join stream: $e';
+        }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to join stream: $e')),
+          SnackBar(content: Text(message)),
         );
         Navigator.pop(context);
       }

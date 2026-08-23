@@ -17,4 +17,3 @@ export 'live_tab.dart';
 export 'explore_tab.dart';
 export 'reels_screen.dart';
 export 'rooms_tab.dart';
-export 'messages_tab.dart';

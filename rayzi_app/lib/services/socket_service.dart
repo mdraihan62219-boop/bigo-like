@@ -62,4 +62,22 @@ class SocketService {
   static void offChatMessage() {
     _socket?.off('chat-message');
   }
+
+  /// Joins the pseudo-room used for PK battle score pushes
+  /// (backend emits pk-score-update to stream_<battleId>).
+  static void joinBattle(String battleId) {
+    _socket?.emit('join-stream', battleId);
+  }
+
+  static void leaveBattle(String battleId) {
+    _socket?.emit('leave-stream', battleId);
+  }
+
+  static void onPkScoreUpdate(Function(dynamic) callback) {
+    _socket?.on('pk-score-update', (data) => callback(data));
+  }
+
+  static void offPkScoreUpdate() {
+    _socket?.off('pk-score-update');
+  }
 }
