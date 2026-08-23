@@ -39,10 +39,31 @@ const items = [
 ]
 
 async function main() {
-  const { error } = await supabase.from('shop_items').upsert(items, { onConflict: 'category,name' })
-  if (error) throw new Error(error.message)
+  // Manual upsert keyed on (category, name) — no unique constraint required.
+  let inserted = 0
+  let updated = 0
+  for (const item of items) {
+    const { data: existing } = await supabase
+      .from('shop_items')
+      .select('id')
+      .eq('category', item.category)
+      .eq('name', item.name)
+      .maybeSingle()
+
+    if (existing?.id) {
+      const { error } = await supabase.from('shop_items').update(item).eq('id', existing.id)
+      if (error) throw new Error(`Update failed for ${item.name}: ${error.message}`)
+      updated++
+    } else {
+      const { error } = await supabase.from('shop_items').insert(item)
+      if (error) throw new Error(`Insert failed for ${item.name}: ${error.message}`)
+      inserted++
+    }
+    console.log(`${existing?.id ? 'updated' : 'created'}: ${item.name}`)
+  }
+
   const { count } = await supabase.from('shop_items').select('*', { count: 'exact', head: true })
-  console.log(`Shop seeded — ${count} active items.`)
+  console.log(`Shop seeded — ${inserted} created, ${updated} updated, ${count} total items.`)
 }
 
 main().catch((e) => {

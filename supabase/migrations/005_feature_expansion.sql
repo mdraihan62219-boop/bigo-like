@@ -70,6 +70,13 @@ CREATE TABLE IF NOT EXISTS public.shop_items (
 );
 CREATE INDEX IF NOT EXISTS idx_shop_items_category ON public.shop_items(category, is_active);
 
+-- Stable identity for seeding/upserts keyed on (category, name).
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'shop_items_category_name_key') THEN
+    ALTER TABLE public.shop_items ADD CONSTRAINT shop_items_category_name_key UNIQUE (category, name);
+  END IF;
+END $$;
+
 CREATE TABLE IF NOT EXISTS public.user_inventory (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
