@@ -18,6 +18,12 @@ jest.mock('../config/database', () => ({
       signInWithPassword: (...args: unknown[]) => mockSignInWithPassword(...args),
     },
   },
+  createAuthClient: () => ({
+    auth: {
+      signUp: (...args: unknown[]) => mockSignUp(...args),
+      signInWithPassword: (...args: unknown[]) => mockSignInWithPassword(...args),
+    },
+  }),
 }))
 
 import routes from '../routes'

@@ -1,17 +1,20 @@
 import { Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
-import { supabase } from '../config/database'
+import { supabase, createAuthClient } from '../config/database'
 import { success, created, error } from '../utils/response'
 
 export class AuthController {
   static async register(req: Request, res: Response) {
+    // Fresh anon client — keeps login sessions OFF the shared service-role
+    // client (a stored session would re-scope every later request).
+    const auth = createAuthClient()
     try {
       const { email, password, username, display_name } = req.body
 
       const { data: existing } = await supabase.from('profiles').select('id').eq('username', username).single()
       if (existing) return error(res, 400, 'Username already taken')
 
-      const { data, error: authError } = await supabase.auth.signUp({
+      const { data, error: authError } = await auth.auth.signUp({
         email, password,
         options: { data: { username, display_name } }
       })
@@ -30,9 +33,10 @@ export class AuthController {
   }
 
   static async login(req: Request, res: Response) {
+    const auth = createAuthClient()
     try {
       const { email, password } = req.body
-      const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
+      const { data, error: authError } = await auth.auth.signInWithPassword({ email, password })
       if (authError) return error(res, 401, authError.message)
 
       const token = jwt.sign(
@@ -47,9 +51,10 @@ export class AuthController {
   }
 
   static async socialLogin(req: Request, res: Response) {
+    const auth = createAuthClient()
     try {
       const { provider, token } = req.body
-      const { data, error: authError } = await supabase.auth.signInWithIdToken({ provider, token })
+      const { data, error: authError } = await auth.auth.signInWithIdToken({ provider, token })
       if (authError) return error(res, 401, authError.message)
 
       const jwtToken = jwt.sign(

@@ -506,8 +506,17 @@ CREATE POLICY "pk_dragon_stages_read_all" ON public.pk_dragon_stages FOR SELECT 
 DROP POLICY IF EXISTS "conversations_own" ON public.conversations;
 CREATE POLICY "conversations_own" ON public.conversations FOR SELECT
   USING (auth.uid() IN (user_a_id, user_b_id));
+DROP POLICY IF EXISTS "conversations_insert_participant" ON public.conversations;
+CREATE POLICY "conversations_insert_participant" ON public.conversations FOR INSERT
+  WITH CHECK (auth.uid() IN (user_a_id, user_b_id));
+DROP POLICY IF EXISTS "conversations_update_participant" ON public.conversations;
+CREATE POLICY "conversations_update_participant" ON public.conversations FOR UPDATE
+  USING (auth.uid() IN (user_a_id, user_b_id));
 DROP POLICY IF EXISTS "messages_own_conversation" ON public.messages;
 CREATE POLICY "messages_own_conversation" ON public.messages FOR SELECT
   USING (EXISTS (SELECT 1 FROM public.conversations c WHERE c.id = conversation_id AND auth.uid() IN (c.user_a_id, c.user_b_id)));
 DROP POLICY IF EXISTS "messages_insert_own" ON public.messages;
 CREATE POLICY "messages_insert_own" ON public.messages FOR INSERT WITH CHECK (auth.uid() = sender_id);
+DROP POLICY IF EXISTS "messages_update_participant" ON public.messages;
+CREATE POLICY "messages_update_participant" ON public.messages FOR UPDATE
+  USING (EXISTS (SELECT 1 FROM public.conversations c WHERE c.id = conversation_id AND auth.uid() IN (c.user_a_id, c.user_b_id)));

@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 // Live integration smoke test for PHM Live v2 endpoints.
 // Usage: node scripts/test-live.mjs [baseUrl]
-// Registers a throwaway test user, walks every v2 endpoint group,
-// prints PASS/FAIL per check. Exits non-zero if any FAIL.
+// Creates a throwaway confirmed user via the admin API (no signup email,
+// so Supabase rate limits never block the run), logs in through
+// /auth/login, walks every v2 endpoint group, prints PASS/FAIL per check.
+import 'dotenv/config'
+import { createClient } from '@supabase/supabase-js'
+
 const BASE = process.argv[2] || 'https://bigo-like-1.onrender.com'
 const API = `${BASE}/api/v1`
 
@@ -38,14 +42,29 @@ async function main() {
     check('GET /health', j.status === 'ok')
   } catch (e) { check('GET /health', false, e.message) }
 
-  // ---------- auth: register fresh user ----------
+  // ---------- auth: create confirmed test user (admin API) + real login ----------
   const suffix = Date.now().toString(36)
   const email = `phm.live.test+${suffix}@gmail.com`
   const password = `Test-${suffix}-Pass!`
   const username = `phtmtest${suffix}`.slice(0, 20)
 
-  let r = await req('POST', '/auth/register', { email, password, username, display_name: 'PHM Live Test' }, false)
-  check('POST /auth/register', r.json?.success === true && !!r.json?.data?.token, JSON.stringify(r.json?.error ?? ''))
+  const supabaseUrl = process.env.SUPABASE_URL
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!supabaseUrl || !serviceKey) {
+    console.log('SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY missing in rayzi-backend/.env')
+    report()
+    return
+  }
+  const adminClient = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } })
+  const { data: created, error: createErr } = await adminClient.auth.admin.createUser({
+    email, password, email_confirm: true,
+    user_metadata: { username, display_name: 'PHM Live Test' },
+  })
+  check('admin createUser', !createErr && !!created?.user, createErr?.message ?? '')
+
+  let r
+  r = await req('POST', '/auth/login', { email, password }, false)
+  check('POST /auth/login', r.json?.success === true && !!r.json?.data?.token, JSON.stringify(r.json?.error ?? ''))
   token = r.json?.data?.token
 
   if (!token) {
