@@ -65,7 +65,22 @@ export class GiftService {
       }).select().single()
 
       if (txError) throw txError
-      return tx ?? null
+
+      // PK battle scoring — same write path as the gift economy (single source
+      // of truth). No-op when the receiving stream is not in an active battle.
+      let pkUpdate = null
+      if (streamRef) {
+        try {
+          const { data } = await supabase.rpc('pk_apply_score', {
+            p_stream_id: streamRef, p_amount: totalCoins,
+          })
+          pkUpdate = data ?? null
+        } catch (pkErr) {
+          // Battle scoring must never fail the gift itself.
+        }
+      }
+
+      return { ...(tx ?? {}), pk_update: pkUpdate }
     } catch (txErr) {
       await supabase.rpc('add_coins', { p_user_id: senderId, p_amount: totalCoins })
       await supabase.rpc('deduct_diamonds', { p_user_id: receiverId, p_amount: totalDiamonds })

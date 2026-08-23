@@ -32,6 +32,8 @@ const server = http.createServer(app)
 // every user behind the proxy into one shared IP.
 app.set('trust proxy', 1)
 const io = initSocket(server)
+// Expose the socket server to REST controllers (feed/reseller/host/pk events).
+app.set('io', io)
 
 app.use(helmet())
 app.use(cors({ origin: getAllowedOrigins(), credentials: true }))

@@ -14,6 +14,7 @@ class LiveTab extends StatefulWidget {
 class _LiveTabState extends State<LiveTab> {
   List<dynamic> _streams = [];
   bool _isLoading = true;
+  String _filter = 'all'; // all | video | audio | following
 
   @override
   void initState() {
@@ -22,8 +23,23 @@ class _LiveTabState extends State<LiveTab> {
   }
 
   Future<void> _loadStreams() async {
+    setState(() => _isLoading = true);
     try {
-      final response = await ApiService.get('/streams', queryParameters: {'status': 'live'});
+      final queryParameters = <String, dynamic>{'status': 'live'};
+      if (_filter == 'video') {
+        // Video-only: live streams (camera) — rooms are audio.
+      } else if (_filter == 'audio') {
+        final response = await ApiService.get('/rooms');
+        if (!mounted) return;
+        setState(() {
+          _streams = response.data['data'] ?? [];
+          _isLoading = false;
+        });
+        return;
+      } else if (_filter == 'following') {
+        queryParameters['following'] = 'true';
+      }
+      final response = await ApiService.get('/streams', queryParameters: queryParameters);
       setState(() {
         _streams = response.data['data'] ?? [];
         _isLoading = false;
@@ -54,13 +70,39 @@ class _LiveTabState extends State<LiveTab> {
           ),
         ],
       ),
-      body: _isLoading
-        ? const Center(child: CircularProgressIndicator())
-        : RefreshIndicator(
-            onRefresh: _loadStreams,
-            child: _streams.isEmpty
-              ? ListView(children: const [SizedBox(height: 200), Center(child: Text('No live streams'))])
-              : GridView.builder(
+      body: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            child: SizedBox(
+              height: 36.h,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: ['all', 'video', 'audio', 'following'].map((f) {
+                  final selected = _filter == f;
+                  return Padding(
+                    padding: EdgeInsets.only(right: 8.w),
+                    child: ChoiceChip(
+                      label: Text(f[0].toUpperCase() + f.substring(1)),
+                      selected: selected,
+                      onSelected: (_) {
+                        setState(() => _filter = f);
+                        _loadStreams();
+                      },
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+          Expanded(
+            child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : RefreshIndicator(
+                onRefresh: _loadStreams,
+                child: _streams.isEmpty
+                  ? ListView(children: const [SizedBox(height: 200), Center(child: Text('No live streams'))])
+                  : GridView.builder(
                   padding: EdgeInsets.all(12.w),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
@@ -160,6 +202,9 @@ class _LiveTabState extends State<LiveTab> {
                   },
                 ),
           ),
+          ),
+        ],
+      ),
     );
   }
 }

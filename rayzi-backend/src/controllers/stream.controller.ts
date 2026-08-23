@@ -98,12 +98,22 @@ export class StreamController {
     try {
       const page = pageParam(req.query.page)
       const limit = limitParam(req.query.limit)
-      const { status = 'live', category } = req.query
+      const { status = 'live', category, following } = req.query
       let query = supabase.from('streams')
         .select('*, profiles!streams_host_id_fkey(*)', { count: 'exact' })
 
       if (status) query = query.eq('status', status)
       if (category) query = query.eq('category', category)
+      if (following === 'true' && req.user?.id) {
+        // Only streams from hosts the viewer follows.
+        const { data: follows } = await supabase
+          .from('follows').select('following_id').eq('follower_id', req.user.id)
+        const ids = (follows ?? []).map((f: { following_id: string }) => f.following_id)
+        if (ids.length === 0) {
+          return success(res, [], undefined, { page, limit, total: 0 })
+        }
+        query = query.in('host_id', ids)
+      }
 
       const { data, count } = await query
         .order('started_at', { ascending: false })

@@ -115,6 +115,18 @@ export const initSocket = (server: Server) => {
           total_coins: tx.total_coins,
           timestamp: new Date().toISOString()
         })
+
+        // PK scoreboard push on the battle room when the gift hit a battle side.
+        const pk = (tx as Record<string, unknown>).pk_update as Record<string, unknown> | null
+        if (pk) {
+          io.to(`stream_${pk.battle_id}`).emit('pk-score-update', {
+            battleId: pk.battle_id,
+            scoreA: pk.side === 1 ? pk.score : null,
+            scoreB: pk.side === 2 ? pk.score : null,
+            dragonStageA: pk.side === 1 ? pk.dragon_stage : null,
+            dragonStageB: pk.side === 2 ? pk.dragon_stage : null,
+          })
+        }
         ack?.({ ok: true })
       } catch (err: any) {
         logger.warn(`send-gift rejected for ${userId}: ${err.message}`)

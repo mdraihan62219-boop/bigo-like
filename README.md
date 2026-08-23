@@ -27,7 +27,16 @@ Full-stack live streaming platform (Smarty/Rayzi clone): Node.js API + Supabase 
 
 ### 1. Database
 Run `supabase/migrations/001_init.sql` then `002_functions.sql` in the Supabase SQL Editor.
+Then run `003_security_hardening.sql`, `004_seed_example_reels.sql` (optional demo reels)
+and **`005_feature_expansion.sql`** (required for v2 features: newsfeed stories, shop,
+reseller, host applications, friends, PK battles, inbox).
 Create storage buckets: `avatars`, `stream-thumbnails`, `post-media`, `gift-animations`, `room-covers` (all public).
+
+After 005 is applied, seed the shop catalog:
+```bash
+cd rayzi-backend && node scripts/seed-shop.mjs   # uses SUPABASE_URL/SERVICE_ROLE from .env
+```
+(Example reels can be re-seeded anytime with `node scripts/seed-reels.mjs`.)
 
 ### 2. Backend
 ```bash

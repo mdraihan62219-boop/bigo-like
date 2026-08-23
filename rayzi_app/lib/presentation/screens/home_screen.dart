@@ -4,8 +4,8 @@ import 'live_tab.dart';
 import 'explore_tab.dart';
 import 'reels_screen.dart';
 import 'rooms_tab.dart';
-import 'messages_tab.dart';
 import 'profile_tab.dart';
+import '../../features/inbox/inbox_screens.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,7 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ExploreTab(),
     ReelsTab(),
     RoomsTab(),
-    MessagesTab(),
+    InboxListScreen(),
     ProfileTab(),
   ];
 

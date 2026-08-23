@@ -26,6 +26,18 @@ export class GiftController {
       })
 
       if (tx === null) return error(res, 404, 'Gift not found')
+
+      // Realtime PK scoreboard push (notification only — scoring itself is
+      // done inside the gift write path via pk_apply_score).
+      const pk = (tx as Record<string, unknown>).pk_update as Record<string, unknown> | null
+      if (pk) {
+        req.app.get('io')?.to(`stream_${pk.battle_id}`).emit('pk-score-update', {
+          battleId: pk.battle_id, scoreA: pk.side === 1 ? pk.score : null,
+          scoreB: pk.side === 2 ? pk.score : null,
+          dragonStageA: pk.side === 1 ? pk.dragon_stage : null,
+          dragonStageB: pk.side === 2 ? pk.dragon_stage : null,
+        })
+      }
       return success(res, tx, 'Gift sent successfully')
     } catch (err: any) {
       return error(res, 400, err.message)

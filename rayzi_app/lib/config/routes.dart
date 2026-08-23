@@ -1,5 +1,13 @@
 import 'package:flutter/material.dart';
 import '../presentation/screens/screens.dart';
+import '../features/shop/shop_screens.dart';
+import '../features/shop/inventory_screen.dart';
+import '../features/feed/feed_screens.dart';
+import '../features/host/host_screens.dart';
+import '../features/pk/pk_screens.dart';
+import '../features/profile/theme_selector_screen.dart';
+import '../features/profile/entry_animation_selector_screen.dart';
+import '../features/inbox/inbox_screens.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -40,7 +48,7 @@ class AppRoutes {
     },
     createStream: (context) => const CreateStreamScreen(),
     postDetail: (context) => const ComingSoonScreen(title: 'Post details'),
-    createPost: (context) => const ComingSoonScreen(title: 'Create post'),
+    createPost: (context) => const CreatePostScreen(),
     reels: (context) {
       final args = ModalRoute.of(context)?.settings.arguments;
       final map = args is Map ? args : const {};
@@ -59,5 +67,27 @@ class AppRoutes {
     search: (context) => const SearchScreen(),
     notifications: (context) => const NotificationsScreen(),
     settings: (context) => const SettingsScreen(),
+    // ---- v2 expansion routes ----
+    '/shop': (context) => const ShopHomeScreen(),
+    '/shop-tier': (context) {
+      final tier = ModalRoute.of(context)?.settings.arguments;
+      return ShopTierScreen(tier: tier is String ? tier : 'vip');
+    },
+    '/inventory': (context) => const InventoryScreen(),
+    '/create-story': (context) => const CreateStoryScreen(),
+    '/story-viewer': (context) => const StoryViewerScreen(),
+    '/newsfeed': (context) => const NewsfeedScreen(),
+    '/reseller-recharge': (context) => const RechargeFromResellerScreen(),
+    '/my-recharge-requests': (context) => const MyRechargeRequestsScreen(),
+    '/host-request': (context) => const HostRequestScreen(),
+    '/themes': (context) => const ThemeSelectorScreen(),
+    '/entry-animations': (context) => const EntryAnimationSelectorScreen(),
+    '/inbox': (context) => const InboxListScreen(),
+    '/conversation': (context) => const ConversationScreen(),
+    '/pk-battle': (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final id = args is Map ? args['id'] as String? : null;
+      return PkBattleView(battleId: id ?? '');
+    },
   };
 }

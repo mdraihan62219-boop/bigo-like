@@ -8,6 +8,7 @@ import 'presentation/screens/streams_screen.dart';
 import 'presentation/screens/reports_screen.dart';
 import 'presentation/screens/gifts_screen.dart';
 import 'presentation/screens/withdrawals_screen.dart';
+import 'presentation/screens/expansion_screen.dart';
 
 class AdminApp extends StatelessWidget {
   const AdminApp({super.key});
@@ -30,6 +31,7 @@ class AdminApp extends StatelessWidget {
         '/reports': (context) => _guarded(const ReportsScreen()),
         '/gifts': (context) => _guarded(const GiftsScreen()),
         '/withdrawals': (context) => _guarded(const WithdrawalsScreen()),
+        '/expansion': (context) => _guarded(const ExpansionScreen()),
       },
     );
   }

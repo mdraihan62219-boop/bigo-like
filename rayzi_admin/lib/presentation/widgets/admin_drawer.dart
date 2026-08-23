@@ -50,6 +50,12 @@ class AdminDrawer extends StatelessWidget {
             title: const Text('Withdrawals'),
             onTap: () => Navigator.pushNamed(context, '/withdrawals'),
           ),
+          ListTile(
+            leading: const Icon(Icons.storefront),
+            title: const Text('Expansion'),
+            subtitle: const Text('Shop · Recharges · Host apps'),
+            onTap: () => Navigator.pushNamed(context, '/expansion'),
+          ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),

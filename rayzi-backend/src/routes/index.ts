@@ -9,6 +9,16 @@ import roomRoutes from './room.routes'
 import notificationRoutes from './notification.routes'
 import reportRoutes from './report.routes'
 import adminRoutes from './admin.routes'
+import feedRoutes from './feed.routes'
+import shopRoutes from './shop.routes'
+import inventoryRoutes from './inventory.routes'
+import leaderboardRoutes from './leaderboard.routes'
+import resellerRoutes from './reseller.routes'
+import hostApplicationRoutes from './hostApplication.routes'
+import friendRoutes from './friend.routes'
+import profileExtrasRoutes from './profileExtras.routes'
+import pkRoutes from './pk.routes'
+import inboxRoutes from './inbox.routes'
 
 const router = Router()
 
@@ -22,5 +32,15 @@ router.use('/rooms', roomRoutes)
 router.use('/notifications', notificationRoutes)
 router.use('/reports', reportRoutes)
 router.use('/admin', adminRoutes)
+router.use('/feed', feedRoutes)
+router.use('/shop', shopRoutes)
+router.use('/inventory', inventoryRoutes)
+router.use('/leaderboard', leaderboardRoutes)
+router.use('/reseller', resellerRoutes)
+router.use('/host-application', hostApplicationRoutes)
+router.use('/friends', friendRoutes)
+router.use('/profile', profileExtrasRoutes)
+router.use('/pk', pkRoutes)
+router.use('/inbox', inboxRoutes)
 
 export default router
