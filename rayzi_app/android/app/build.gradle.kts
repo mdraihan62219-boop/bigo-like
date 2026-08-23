@@ -23,7 +23,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.yourcompany.rayzi_app"
+        applicationId = "com.phm.phmlive"
         // Agora RTC requires API 21+.
         minSdk = 21
         targetSdk = flutter.targetSdkVersion

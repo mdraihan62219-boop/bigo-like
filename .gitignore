@@ -42,4 +42,7 @@ npm-debug.log*
 # Secrets & local credentials
 ids.txt
 **/google-services.json
+**/GoogleService-Info.plist
+client_secret*.json
+**/client_secret*.json
 rayzi-backend/.env
