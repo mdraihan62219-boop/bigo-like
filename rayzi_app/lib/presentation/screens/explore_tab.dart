@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../services/api_service.dart';
+import 'reels_screen.dart';
 
 class ExploreTab extends StatefulWidget {
   const ExploreTab({super.key});
@@ -47,7 +48,7 @@ class _ExploreTabState extends State<ExploreTab> {
             onRefresh: _loadPosts,
             child: _posts.isEmpty
               ? ListView(children: const [SizedBox(height: 200), Center(child: Text('No posts yet'))])
-              : GridView.builder(
+                : GridView.builder(
                   padding: EdgeInsets.all(8.w),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
@@ -59,19 +60,29 @@ class _ExploreTabState extends State<ExploreTab> {
                   itemBuilder: (context, index) {
                     final post = _posts[index];
                     final urls = post['media_urls'] as List<dynamic>?;
+                    final isVideo = post['media_type'] == 'video';
                     return GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        if (!isVideo) return;
+                        final videoPosts =
+                            _posts.where((p) => p['media_type'] == 'video').toList();
+                        openReelsViewer(context, videoPosts, videoPosts.indexOf(post));
+                      },
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(6.r),
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            CachedNetworkImage(
-                              imageUrl: (urls != null && urls.isNotEmpty)
-                                ? urls.first
-                                : 'https://via.placeholder.com/200',
-                              fit: BoxFit.cover,
-                              errorWidget: (_, __, ___) => Container(color: Colors.grey[800]),
+                      borderRadius: BorderRadius.circular(6.r),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          CachedNetworkImage(
+                            imageUrl: (urls != null && urls.isNotEmpty)
+                              ? urls.first
+                              : 'https://via.placeholder.com/200',
+                            fit: BoxFit.cover,
+                            errorWidget: (_, __, ___) => Container(color: Colors.grey[800]),
+                          ),
+                          if (isVideo)
+                            const Center(
+                              child: Icon(Icons.play_circle_fill, color: Colors.white70, size: 32),
                             ),
                             Positioned(
                               bottom: 4,

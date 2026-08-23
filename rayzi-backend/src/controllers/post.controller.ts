@@ -20,12 +20,15 @@ export class PostController {
 
   static async list(req: AuthenticatedRequest, res: Response) {
     try {
-      const { page = 1, limit = 20 } = req.query
-      const { data, count } = await supabase
+      const { page = 1, limit = 20, media_type } = req.query
+      let query = supabase
         .from('posts')
         .select('*, profiles!posts_user_id_fkey(username, display_name, avatar_url)', { count: 'exact' })
         .order('created_at', { ascending: false })
-        .range((+page - 1) * +limit, +page * +limit - 1)
+      if (typeof media_type === 'string' && media_type) {
+        query = query.eq('media_type', media_type)
+      }
+      const { data, count } = await query.range((+page - 1) * +limit, +page * +limit - 1)
 
       return success(res, data, undefined, { page: +page, limit: +limit, total: count || 0 })
     } catch (err: any) {

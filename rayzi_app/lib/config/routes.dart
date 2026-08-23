@@ -12,6 +12,7 @@ class AppRoutes {
   static const String createStream = '/create-stream';
   static const String postDetail = '/post-detail';
   static const String createPost = '/create-post';
+  static const String reels = '/reels';
   static const String room = '/room';
   static const String createRoom = '/create-room';
   static const String wallet = '/wallet';
@@ -40,6 +41,14 @@ class AppRoutes {
     createStream: (context) => const CreateStreamScreen(),
     postDetail: (context) => const ComingSoonScreen(title: 'Post details'),
     createPost: (context) => const ComingSoonScreen(title: 'Create post'),
+    reels: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final map = args is Map ? args : const {};
+      return ReelsScreen(
+        posts: map['posts'] as List<dynamic>?,
+        initialIndex: (map['initialIndex'] as int?) ?? 0,
+      );
+    },
     room: (context) => const ComingSoonScreen(title: 'Audio room'),
     createRoom: (context) => const ComingSoonScreen(title: 'Create audio room'),
     giftStore: (context) => const ComingSoonScreen(title: 'Gift store'),

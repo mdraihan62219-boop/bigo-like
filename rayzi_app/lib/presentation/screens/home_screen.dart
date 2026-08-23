@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../config/routes.dart';
 import 'live_tab.dart';
 import 'explore_tab.dart';
+import 'reels_screen.dart';
 import 'rooms_tab.dart';
 import 'messages_tab.dart';
 import 'profile_tab.dart';
@@ -19,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _tabs = const [
     LiveTab(),
     ExploreTab(),
+    ReelsTab(),
     RoomsTab(),
     MessagesTab(),
     ProfileTab(),
@@ -31,9 +33,14 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: Theme.of(context).colorScheme.primary,
+        unselectedItemColor: Colors.grey,
+        showUnselectedLabels: true,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.live_tv), label: 'Live'),
           BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
+          BottomNavigationBarItem(icon: Icon(Icons.movie), label: 'Reels'),
           BottomNavigationBarItem(icon: Icon(Icons.meeting_room), label: 'Rooms'),
           BottomNavigationBarItem(icon: Icon(Icons.message), label: 'Messages'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
