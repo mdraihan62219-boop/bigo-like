@@ -20,6 +20,7 @@ class AppRoutes {
   static const String search = '/search';
   static const String notifications = '/notifications';
   static const String settings = '/settings';
+  static const String about = '/about';
   static const String chat = '/chat';
   static const String userProfile = '/user-profile';
 

@@ -33,6 +33,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             trailing: Text(_version),
           ),
           ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: const Text('About PHM Live'),
+            subtitle: const Text('Connect. Stream. Earn.'),
+            onTap: () => Navigator.pushNamed(context, '/about'),
+          ),
+          ListTile(
             leading: const Icon(Icons.privacy_tip_outlined),
             title: const Text('Privacy Policy'),
             onTap: () {},

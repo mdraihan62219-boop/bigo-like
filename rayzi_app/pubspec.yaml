@@ -1,5 +1,5 @@
 name: rayzi_app
-description: Rayzi Clone - Live Streaming App
+description: PHM Live - Your Stage, Your Stream, Your Earning
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -43,6 +43,13 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   integration_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  image_path: "assets/images/logo.jpeg"
+  android: true
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/logo.jpeg"
 
 flutter:
   uses-material-design: true

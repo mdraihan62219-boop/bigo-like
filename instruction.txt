@@ -1,0 +1,6 @@
+ add features and details from this md "D:\rayzi type\PHM_Live_App_Details_English.md" make the apk name,details,features as mention on md.
+
+also make the logo as "D:\rayzi type\logo.jpeg" , use this as logo for apk
+
+after all done commit and push to git , also make sure backend should work as plan 
+than clean rebuild apk for test by real phone

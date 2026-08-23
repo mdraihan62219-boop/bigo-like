@@ -45,3 +45,35 @@ export const requireAdmin = (req: AuthenticatedRequest, res: Response, next: Nex
   }
   next()
 }
+
+/**
+ * Like `authenticate`, but for public browse endpoints: attaches req.user
+ * when a valid, non-banned token is present; otherwise continues as
+ * anonymous instead of returning 401.
+ */
+export const optionalAuth = async (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1]
+    if (token && process.env.JWT_SECRET) {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET) as { id?: string; email?: string }
+      if (decoded?.id) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role, is_banned')
+          .eq('id', decoded.id)
+          .single()
+
+        if (profile && !profile.is_banned) {
+          req.user = {
+            id: decoded.id,
+            email: decoded.email ?? '',
+            role: profile.role || 'user',
+          }
+        }
+      }
+    }
+  } catch (_err) {
+    // Anonymous access — treated the same as no token.
+  }
+  next()
+}

@@ -12,6 +12,7 @@ export 'leaderboard_screen.dart';
 export 'search_screen.dart';
 export 'notifications_screen.dart';
 export 'settings_screen.dart';
+export 'about_screen.dart';
 export 'live_tab.dart';
 export 'explore_tab.dart';
 export 'rooms_tab.dart';
