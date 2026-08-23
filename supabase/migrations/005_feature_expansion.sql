@@ -96,25 +96,26 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS name_effect JSONB DEFAULT N
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS camera_prefs JSONB DEFAULT '{"filter":"natural","beauty_level":0,"brightness":0}'::jsonb;
 
 -- Atomic purchase RPC — price looked up server-side ONLY (audit C1/C3).
-CREATE OR REPLACE FUNCTION public.purchase_shop_item(p_item_id UUID)
+-- Takes explicit p_user_id: the API's service-role client has no auth.uid()
+-- context; the caller id comes from the backend's authenticated request.
+DROP FUNCTION IF EXISTS public.purchase_shop_item(UUID);
+CREATE OR REPLACE FUNCTION public.purchase_shop_item(p_user_id UUID, p_item_id UUID)
 RETURNS JSONB AS $$
 DECLARE
   v_item public.shop_items;
-  v_user UUID;
   v_inv public.user_inventory;
 BEGIN
-  SELECT auth.uid() INTO v_user;
-  IF v_user IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF;
+  IF p_user_id IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF;
 
   SELECT * INTO v_item FROM public.shop_items WHERE id = p_item_id AND is_active = TRUE;
   IF NOT FOUND THEN RAISE EXCEPTION 'Item not found'; END IF;
 
   UPDATE public.profiles SET diamonds = diamonds - v_item.price_diamonds
-   WHERE id = v_user AND diamonds >= v_item.price_diamonds;
+   WHERE id = p_user_id AND diamonds >= v_item.price_diamonds;
   IF NOT FOUND THEN RAISE EXCEPTION 'Insufficient diamonds'; END IF;
 
   INSERT INTO public.user_inventory (user_id, item_id, expires_at)
-  VALUES (v_user, p_item_id,
+  VALUES (p_user_id, p_item_id,
           CASE WHEN v_item.duration_days IS NULL THEN NULL ELSE NOW() + make_interval(days => v_item.duration_days) END)
   ON CONFLICT (user_id, item_id) DO UPDATE
     SET expires_at = CASE WHEN v_item.duration_days IS NULL THEN NULL
@@ -126,24 +127,26 @@ BEGIN
 EXCEPTION WHEN OTHERS THEN
   -- refund on any failure after deduction
   IF v_item.id IS NOT NULL AND SQLSTATE <> 'P0001' THEN
-    UPDATE public.profiles SET diamonds = diamonds + v_item.price_diamonds WHERE id = v_user;
+    UPDATE public.profiles SET diamonds = diamonds + v_item.price_diamonds WHERE id = p_user_id;
   END IF;
   RAISE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-REVOKE ALL ON FUNCTION public.purchase_shop_item(UUID) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.purchase_shop_item(UUID) TO authenticated;
+REVOKE ALL ON FUNCTION public.purchase_shop_item(UUID,UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.purchase_shop_item(UUID,UUID) TO authenticated;
 
 -- Equip RPC — verifies ownership server-side, unequips previous same-category.
-CREATE OR REPLACE FUNCTION public.equip_inventory_item(p_inventory_id UUID, p_equip BOOLEAN)
+DROP FUNCTION IF EXISTS public.equip_inventory_item(UUID, BOOLEAN);
+CREATE OR REPLACE FUNCTION public.equip_inventory_item(p_user_id UUID, p_inventory_id UUID, p_equip BOOLEAN)
 RETURNS JSONB AS $$
 DECLARE
   v_row RECORD;
   v_col TEXT;
 BEGIN
+  IF p_user_id IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF;
   SELECT ui.*, si.category AS item_category INTO v_row
   FROM public.user_inventory ui JOIN public.shop_items si ON si.id = ui.item_id
-  WHERE ui.id = p_inventory_id AND ui.user_id = auth.uid();
+  WHERE ui.id = p_inventory_id AND ui.user_id = p_user_id;
   IF NOT FOUND THEN RAISE EXCEPTION 'Inventory item not found'; END IF;
 
   v_col := CASE v_row.item_category
@@ -155,24 +158,23 @@ BEGIN
 
   IF p_equip THEN
     IF v_col IS NOT NULL THEN
-      -- unequip previous of same category
       EXECUTE format(
         'UPDATE public.user_inventory SET is_equipped = FALSE WHERE user_id = $1 AND is_equipped AND item_id IN (SELECT id FROM public.shop_items WHERE category = %L)',
-        v_row.item_category) USING v_row.user_id;
+        v_row.item_category) USING p_user_id;
       EXECUTE format('UPDATE public.profiles SET %I = $2 WHERE id = $1', v_col)
-        USING v_row.user_id, v_row.item_id;
+        USING p_user_id, v_row.item_id;
     END IF;
     IF v_row.item_category = 'name_effect' THEN
       UPDATE public.profiles SET name_effect = si.effect_config
-      FROM public.shop_items si WHERE si.id = v_row.item_id AND public.profiles.id = v_row.user_id;
+      FROM public.shop_items si WHERE si.id = v_row.item_id AND public.profiles.id = p_user_id;
     END IF;
     UPDATE public.user_inventory SET is_equipped = TRUE WHERE id = p_inventory_id;
   ELSE
     IF v_col IS NOT NULL THEN
-      EXECUTE format('UPDATE public.profiles SET %I = NULL WHERE id = $1', v_col) USING v_row.user_id;
+      EXECUTE format('UPDATE public.profiles SET %I = NULL WHERE id = $1', v_col) USING p_user_id;
     END IF;
     IF v_row.item_category = 'name_effect' THEN
-      UPDATE public.profiles SET name_effect = NULL WHERE id = v_row.user_id;
+      UPDATE public.profiles SET name_effect = NULL WHERE id = p_user_id;
     END IF;
     UPDATE public.user_inventory SET is_equipped = FALSE WHERE id = p_inventory_id;
   END IF;
@@ -180,8 +182,8 @@ BEGIN
   RETURN jsonb_build_object('inventory_id', p_inventory_id, 'equipped', p_equip);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-REVOKE ALL ON FUNCTION public.equip_inventory_item(UUID, BOOLEAN) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.equip_inventory_item(UUID, BOOLEAN) TO authenticated;
+REVOKE ALL ON FUNCTION public.equip_inventory_item(UUID,UUID,BOOLEAN) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.equip_inventory_item(UUID,UUID,BOOLEAN) TO authenticated;
 
 -- ---------------------------------------------------------------------
 -- D. RESELLER RECHARGE SYSTEM

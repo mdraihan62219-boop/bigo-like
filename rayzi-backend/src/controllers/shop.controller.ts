@@ -16,7 +16,7 @@ export class ShopController {
   static async purchase(req: AuthenticatedRequest, res: Response) {
     try {
       const result = await ShopService.purchase(req.user!.id, req.body.item_id)
-      if (!result.ok) return error(res, 400, result.message)
+      if (!result.ok) return error(res, result.status ?? 400, result.message)
       return success(res, result.data, 'Purchased')
     } catch (err: any) {
       return error(res, 400, err.message)
