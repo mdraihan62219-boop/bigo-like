@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../services/api_service.dart';
+import '../../../services/google_auth_service.dart';
 import '../../../services/token_store.dart';
 
 part 'auth_event.dart';
@@ -14,6 +15,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthRegisterRequested>(_onRegisterRequested);
     on<AuthLogoutRequested>(_onLogoutRequested);
     on<AuthGuestRequested>(_onGuestRequested);
+    on<AuthGoogleRequested>(_onGoogleRequested);
   }
 
   Future<void> _onAuthCheckRequested(AuthCheckRequested event, Emitter<AuthState> emit) async {
@@ -87,8 +89,33 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     return user;
   }
 
+  Future<void> _onGoogleRequested(AuthGoogleRequested event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      final idToken = await GoogleAuthService.getIdToken();
+      if (idToken == null) {
+        // User closed the picker — back to the form, no error.
+        emit(AuthUnauthenticated());
+        return;
+      }
+      final response = await ApiService.post('/auth/social', data: {
+        'provider': 'google', 'token': idToken,
+      });
+      emit(AuthAuthenticated(await _persistSession(response.data['data'])));
+    } on GoogleAuthConfigurationException catch (e) {
+      emit(AuthError(e.toString()));
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
+  }
+
   Future<void> _onLogoutRequested(AuthLogoutRequested event, Emitter<AuthState> emit) async {
     await Supabase.instance.client.auth.signOut();
+    try {
+      await GoogleAuthService.signOut();
+    } catch (_) {
+      // Google sign-in may be unconfigured — nothing to reset.
+    }
     await TokenStore.clear();
     emit(AuthUnauthenticated());
   }
