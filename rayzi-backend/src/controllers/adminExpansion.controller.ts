@@ -2,8 +2,10 @@ import { Response } from 'express'
 import { ShopService } from '../services/shop.service'
 import { ResellerService } from '../services/reseller.service'
 import { HostApplicationService } from '../services/hostApplication.service'
+import { WithdrawService } from '../services/withdraw.service'
 import { supabase } from '../config/database'
 import { success, created, error } from '../utils/response'
+import { pageParam, limitParam } from '../utils/pagination'
 import { AuthenticatedRequest } from '../types'
 
 /** Admin-only endpoints for the v2 expansion (shop / reseller / host apps / PK). */
@@ -81,6 +83,103 @@ export class AdminExpansionController {
       return success(res, await ResellerService.adminListAgents())
     } catch (err: any) {
       return error(res, 400, err.message)
+    }
+  }
+
+  // -----------------------------------------------------------------
+  // Wallet Ledger / Adjustments (financial audit view)
+  // -----------------------------------------------------------------
+
+  /** Full ledger across all users; filter by user, reason or admin_code. */
+  static async walletLedger(req: AuthenticatedRequest, res: Response) {
+    try {
+      const page = pageParam(req.query.page)
+      const limit = Math.min(limitParam(req.query.limit), 100)
+      let query = supabase
+        .from('wallet_ledger')
+        .select(`
+          *,
+          actor:profiles!wallet_ledger_actor_id_fkey(username, admin_code, display_name)
+        `, { count: 'exact' })
+
+      const userId = typeof req.query.user_id === 'string' ? req.query.user_id : ''
+      if (userId && /^[0-9a-f-]{36}$/i.test(userId)) query = query.eq('user_id', userId)
+      const reason = typeof req.query.reason === 'string' ? req.query.reason : ''
+      if (reason) query = query.eq('reason', reason)
+      const adminCode = typeof req.query.admin_code === 'string' ? req.query.admin_code.trim() : ''
+      if (adminCode) query = query.filter('actor.admin_code', 'eq', adminCode)
+
+      const { data, count } = await query
+        .order('created_at', { ascending: false })
+        .range((page - 1) * limit, page * limit - 1)
+      return success(res, data ?? [], undefined, { page, limit, total: count || 0 })
+    } catch (err: any) {
+      return error(res, 500, err.message)
+    }
+  }
+
+  /** Manual grant/deduction — always audited via the ledger row inside the RPC. */
+  static async adjustBalance(req: AuthenticatedRequest, res: Response) {
+    try {
+      const userId = typeof req.body?.user_id === 'string' ? req.body.user_id : ''
+      const currency = typeof req.body?.currency === 'string' ? req.body.currency : ''
+      const amount = Number(req.body?.amount)
+      const note = typeof req.body?.note === 'string' ? req.body.note.slice(0, 500) : ''
+      if (!/^[0-9a-f-]{36}$/i.test(userId)) return error(res, 400, 'valid user_id required')
+      if (!['coins', 'diamonds'].includes(currency)) return error(res, 400, 'currency must be coins|diamonds')
+      if (!Number.isInteger(amount) || amount === 0) return error(res, 400, 'non-zero integer amount required')
+      if (note.length < 3) return error(res, 400, 'a reason/note is required')
+
+      const { data, error: rpcError } = await supabase.rpc('admin_adjust_balance', {
+        p_admin: req.user!.id,
+        p_user_id: userId,
+        p_currency: currency,
+        p_amount: amount,
+        p_note: note,
+      })
+      if (rpcError) return error(res, 400, rpcError.message)
+      return created(res, data, 'Balance adjusted and logged in the ledger')
+    } catch (err: any) {
+      return error(res, 500, err.message)
+    }
+  }
+
+  // -----------------------------------------------------------------
+  // Withdraw queue
+  // -----------------------------------------------------------------
+
+  static async withdrawQueue(req: AuthenticatedRequest, res: Response) {
+    try {
+      const status = typeof req.query.status === 'string' ? req.query.status : undefined
+      return success(res, await WithdrawService.adminList(status))
+    } catch (err: any) {
+      return error(res, 500, err.message)
+    }
+  }
+
+  static async withdrawDecide(req: AuthenticatedRequest, res: Response) {
+    try {
+      const id = req.params.id
+      let result
+      if (req.path.endsWith('/approve')) {
+        result = await WithdrawService.adminApprove(id, req.user!.id)
+      } else if (req.path.endsWith('/paid')) {
+        result = await WithdrawService.adminMarkPaid(id, req.user!.id)
+      } else {
+        const reason = typeof req.body?.reason === 'string' && req.body.reason.trim()
+          ? req.body.reason.trim().slice(0, 500) : ''
+        if (!reason) return error(res, 400, 'A rejection reason is required')
+        result = await WithdrawService.adminReject(id, req.user!.id, reason)
+      }
+      if (!result.ok) return error(res, 400, result.message)
+
+      // Notify the requester over their socket room.
+      const event = req.path.endsWith('/reject') ? 'rejected' : req.path.endsWith('/paid') ? 'paid' : 'approved'
+      const { data: wr } = await supabase.from('withdraw_requests').select('user_id').eq('id', id).single()
+      if (wr) req.app.get('io')?.to(`user_${wr.user_id}`).emit('withdraw-status', { requestId: id, status: event })
+      return success(res, null, `Withdrawal ${event}`)
+    } catch (err: any) {
+      return error(res, 500, err.message)
     }
   }
 

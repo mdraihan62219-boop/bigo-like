@@ -31,6 +31,8 @@ export class ShopService {
     // Wallet RPC rejects with 'Insufficient diamonds' when balance is short.
     const { error: deductError } = await supabase.rpc('deduct_diamonds', {
       p_user_id: userId, p_amount: item.price_diamonds,
+      p_reason: 'shop_purchase', p_actor_type: 'user',
+      p_actor_id: userId, p_reference_id: itemId, p_note: item.name,
     })
     if (deductError) return { ok: false as const, status: 400, message: deductError.message }
 
@@ -64,8 +66,13 @@ export class ShopService {
         data: { inventory_id: inv.id, expires_at: inv.expires_at, diamonds_spent: item.price_diamonds },
       }
     } catch (err: any) {
-      // Compensating refund — never lose diamonds to a failed write.
-      await supabase.rpc('add_diamonds', { p_user_id: userId, p_amount: item.price_diamonds })
+      // Compensating refund — never lose diamonds to a failed write. Audited.
+      await supabase.rpc('add_diamonds', {
+        p_user_id: userId, p_amount: item.price_diamonds,
+        p_reason: 'other', p_actor_type: 'system',
+        p_actor_id: null, p_reference_id: itemId,
+        p_note: `refund: failed purchase of ${item.name}`,
+      })
       return { ok: false as const, status: 500, message: err.message }
     }
   }

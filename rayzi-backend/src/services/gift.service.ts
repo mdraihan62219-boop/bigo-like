@@ -1,5 +1,6 @@
 import { supabase } from '../config/database'
 import { WalletService } from './wallet.service'
+import { logger } from '../utils/logger'
 
 export interface SendGiftInput {
   senderId: string
@@ -53,7 +54,13 @@ export class GiftService {
     try {
       await WalletService.addDiamonds(receiverId, totalDiamonds, `Received ${gift.name} x${quantity}`, streamRef)
     } catch (creditErr) {
-      await supabase.rpc('add_coins', { p_user_id: senderId, p_amount: totalCoins })
+      // Refund path — audited as reason 'other' with a refund note.
+      const { error: refundError } = await supabase.rpc('add_coins', {
+        p_user_id: senderId, p_amount: totalCoins,
+        p_reason: 'other', p_actor_type: 'system',
+        p_reference_id: streamRef, p_note: 'refund: receiver credit failed',
+      })
+      if (refundError) logger.error(`Gift refund failed for ${senderId}: ${refundError.message}`)
       throw creditErr
     }
 
@@ -82,8 +89,21 @@ export class GiftService {
 
       return { ...(tx ?? {}), pk_update: pkUpdate }
     } catch (txErr) {
-      await supabase.rpc('add_coins', { p_user_id: senderId, p_amount: totalCoins })
-      await supabase.rpc('deduct_diamonds', { p_user_id: receiverId, p_amount: totalDiamonds })
+      // Full compensating refund — both sides audited as 'other'/system.
+      const { error: refundCoinsError } = await supabase.rpc('add_coins', {
+        p_user_id: senderId, p_amount: totalCoins,
+        p_reason: 'other', p_actor_type: 'system',
+        p_reference_id: streamRef, p_note: 'refund: gift transaction failed',
+      })
+      if (refundCoinsError) logger.error(`Gift coin-refund failed for ${senderId}: ${refundCoinsError.message}`)
+      if (totalDiamonds > 0) {
+        const { error: refundDiamondsError } = await supabase.rpc('deduct_diamonds', {
+          p_user_id: receiverId, p_amount: totalDiamonds,
+          p_reason: 'other', p_actor_type: 'system',
+          p_reference_id: streamRef, p_note: 'reverse-credit: gift transaction failed',
+        })
+        if (refundDiamondsError) logger.error(`Gift diamond-reversal failed for ${receiverId}: ${refundDiamondsError.message}`)
+      }
       throw txErr as Error
     }
   }

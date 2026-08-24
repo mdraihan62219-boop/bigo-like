@@ -14,6 +14,7 @@ class RechargeFromResellerScreen extends StatefulWidget {
 
 class _RechargeFromResellerScreenState extends State<RechargeFromResellerScreen> {
   final _amount = TextEditingController();
+  final _resellerCode = TextEditingController();
   XFile? _proof;
   bool _submitting = false;
 
@@ -39,6 +40,8 @@ class _RechargeFromResellerScreenState extends State<RechargeFromResellerScreen>
       }
       await ApiService.post('/reseller/recharge-request', data: {
         'diamonds_requested': amount,
+        if (_resellerCode.text.trim().isNotEmpty)
+          'reseller_code': _resellerCode.text.trim().toUpperCase(),
         if (proofUrl != null) 'payment_proof_url': proofUrl,
       });
       if (!mounted) return;
@@ -56,6 +59,7 @@ class _RechargeFromResellerScreenState extends State<RechargeFromResellerScreen>
   @override
   void dispose() {
     _amount.dispose();
+    _resellerCode.dispose();
     super.dispose();
   }
 
@@ -66,6 +70,15 @@ class _RechargeFromResellerScreenState extends State<RechargeFromResellerScreen>
       body: Padding(
         padding: EdgeInsets.all(16.w),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          TextField(
+            controller: _resellerCode,
+            textCapitalization: TextCapitalization.characters,
+            decoration: const InputDecoration(
+              labelText: 'Reseller code (e.g. RID-1029)',
+              hintText: 'RID-…',
+            ),
+          ),
+          SizedBox(height: 12.h),
           TextField(
             controller: _amount,
             keyboardType: TextInputType.number,

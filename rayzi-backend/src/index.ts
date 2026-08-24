@@ -1,4 +1,13 @@
 import 'dotenv/config'
+
+// Production default for deployed environments (Render runs `npm start` with
+// no .env file): if nothing set NODE_ENV explicitly, this IS production.
+// Local dev is unaffected — rayzi-backend/.env sets NODE_ENV=development,
+// and jest sets NODE_ENV=test before this file loads.
+if (!process.env.NODE_ENV) {
+  process.env.NODE_ENV = 'production'
+}
+
 import express from 'express'
 import http from 'http'
 import cors from 'cors'

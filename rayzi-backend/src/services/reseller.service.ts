@@ -6,7 +6,22 @@ export class ResellerService {
     if (!Number.isInteger(diamonds) || diamonds <= 0 || diamonds > 1_000_000) {
       throw new Error('diamonds_requested must be a positive integer')
     }
-    const resellerId = typeof body.reseller_id === 'string' && body.reseller_id ? body.reseller_id : null
+    // The client may pass a shareable reseller_code (preferred) — resolve it
+    // server-side to an active agent. A raw reseller_id is still accepted
+    // for backwards compatibility but is validated the same way.
+    let resellerId: string | null = null
+    const code = typeof body.reseller_code === 'string' && body.reseller_code.trim()
+      ? body.reseller_code.trim().toUpperCase() : ''
+    if (code) {
+      const { data: agent, error: codeErr } = await supabase
+        .from('reseller_agents').select('id').eq('reseller_code', code).eq('is_active', true)
+        .maybeSingle()
+      if (codeErr) throw new Error(codeErr.message)
+      if (!agent) throw new Error(`No active reseller found with code ${code}`)
+      resellerId = (agent as { id: string }).id
+    } else if (typeof body.reseller_id === 'string' && body.reseller_id) {
+      resellerId = body.reseller_id
+    }
     const proofUrl = typeof body.payment_proof_url === 'string' ? body.payment_proof_url.slice(0, 1000) : null
 
     const { data: active, error: activeErr } = await supabase
@@ -25,14 +40,16 @@ export class ResellerService {
 
   static async myRequests(userId: string) {
     const { data, error } = await supabase
-      .from('recharge_requests').select('*').eq('requester_id', userId)
+      .from('recharge_requests').select('*, reseller_agents(reseller_code)').eq('requester_id', userId)
       .order('created_at', { ascending: false })
     if (error) throw new Error(error.message)
     return data
   }
 
   static async adminListRequests(status?: string) {
-    let query = supabase.from('recharge_requests').select('*').order('created_at', { ascending: true })
+    let query = supabase.from('recharge_requests')
+      .select('*, reseller_agents(reseller_code), profiles!recharge_requests_requester_id_fkey(username, display_name)')
+      .order('created_at', { ascending: true })
     if (status) query = query.eq('status', status)
     const { data, error } = await query
     if (error) throw new Error(error.message)

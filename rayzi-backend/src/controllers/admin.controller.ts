@@ -342,7 +342,10 @@ export class AdminController {
       // Refund the diamonds that were deducted when the withdrawal was requested.
       const refundAmount = Math.abs(tx.amount)
       const { error: refundError } = await supabase.rpc('add_diamonds', {
-        p_user_id: tx.user_id, p_amount: refundAmount
+        p_user_id: tx.user_id, p_amount: refundAmount,
+        p_reason: 'withdraw_reversal', p_actor_type: 'admin',
+        p_actor_id: req.user!.id, p_reference_id: (tx as { id?: string }).id ?? null,
+        p_note: 'legacy withdrawal rejected — diamonds refunded',
       })
       if (refundError) return error(res, 500, `Refund failed: ${refundError.message}`)
 

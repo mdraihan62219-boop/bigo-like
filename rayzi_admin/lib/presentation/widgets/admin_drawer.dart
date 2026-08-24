@@ -56,6 +56,12 @@ class AdminDrawer extends StatelessWidget {
             subtitle: const Text('Shop · Recharges · Host apps'),
             onTap: () => Navigator.pushNamed(context, '/expansion'),
           ),
+          ListTile(
+            leading: const Icon(Icons.account_balance),
+            title: const Text('Wallet Economy'),
+            subtitle: const Text('Ledger · Adjustments · Withdraw queue'),
+            onTap: () => Navigator.pushNamed(context, '/wallet-economy'),
+          ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),

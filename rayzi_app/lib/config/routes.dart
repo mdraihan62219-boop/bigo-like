@@ -8,6 +8,7 @@ import '../features/pk/pk_screens.dart';
 import '../features/profile/theme_selector_screen.dart';
 import '../features/profile/entry_animation_selector_screen.dart';
 import '../features/inbox/inbox_screens.dart';
+import '../features/wallet/wallet_v2_screens.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -84,6 +85,10 @@ class AppRoutes {
     '/entry-animations': (context) => const EntryAnimationSelectorScreen(),
     '/inbox': (context) => const InboxListScreen(),
     '/conversation': (context) => const ConversationScreen(),
+    // ---- wallet economy v2 ----
+    '/buy-coins': (context) => const BuyCoinsScreen(),
+    '/withdraw': (context) => const WithdrawScreen(),
+    '/wallet-ledger': (context) => const WalletLedgerScreen(),
     '/pk-battle': (context) {
       final args = ModalRoute.of(context)?.settings.arguments;
       final id = args is Map ? args['id'] as String? : null;

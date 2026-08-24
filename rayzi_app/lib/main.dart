@@ -42,6 +42,8 @@ class CurrentRouteObserver extends NavigatorObserver {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await AppThemeController.load();
+
   await Supabase.initialize(
     url: AppConstants.supabaseUrl,
     anonKey: AppConstants.supabaseAnonKey,
@@ -94,14 +96,22 @@ class _RayziAppState extends State<RayziApp> {
       builder: (context, child) {
         return BlocProvider(
           create: (context) => AuthBloc(),
-          child: MaterialApp(
-            title: AppConstants.appName,
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.darkTheme,
-            initialRoute: AppRoutes.splash,
-            routes: AppRoutes.routes,
-            navigatorKey: navigatorKey,
-            navigatorObservers: [_routeObserver],
+          child: ValueListenableBuilder<ThemeMode>(
+            valueListenable: AppThemeController.mode,
+            builder: (context, themeMode, _) => MaterialApp(
+              title: AppConstants.appName,
+              debugShowCheckedModeBanner: false,
+              // Day / Night / System appearance — persisted locally via
+              // AppThemeController. Purchasable cosmetic "Theme" shop items
+              // are separate profile decorations and never touch this.
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: themeMode,
+              initialRoute: AppRoutes.splash,
+              routes: AppRoutes.routes,
+              navigatorKey: navigatorKey,
+              navigatorObservers: [_routeObserver],
+            ),
           ),
         );
       },

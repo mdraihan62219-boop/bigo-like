@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../../config/theme.dart';
 import '../blocs/auth/auth_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -17,6 +19,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     PackageInfo.fromPlatform().then((info) {
+      if (!mounted) return;
       setState(() => _version = '${info.version} (${info.buildNumber})');
     });
   }
@@ -27,6 +30,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         children: [
+          // ---- Appearance: Day / Night / System -------------------------
+          Padding(
+            padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 4.h),
+            child: Text('Appearance',
+                style:
+                    TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600)),
+          ),
+          ValueListenableBuilder<ThemeMode>(
+            valueListenable: AppThemeController.mode,
+            builder: (context, current, _) => Column(
+              children: [
+                _modeTile(context, ThemeMode.light, Icons.light_mode_outlined,
+                    'Light', current),
+                _modeTile(context, ThemeMode.dark, Icons.dark_mode_outlined,
+                    'Dark', current),
+                _modeTile(
+                    context,
+                    ThemeMode.system,
+                    Icons.brightness_auto_outlined,
+                    'System Default',
+                    current),
+              ],
+            ),
+          ),
+          const Divider(),
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: const Text('Version'),
@@ -59,6 +87,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _modeTile(BuildContext context, ThemeMode value, IconData icon,
+      String label, ThemeMode current) {
+    return RadioListTile<ThemeMode>(
+      value: value,
+      groupValue: current,
+      onChanged: (next) {
+        if (next != null) AppThemeController.setMode(next);
+      },
+      secondary: Icon(icon),
+      title: Text(label, style: TextStyle(fontSize: 15.sp)),
+      activeColor: Theme.of(context).colorScheme.primary,
     );
   }
 }

@@ -37,6 +37,14 @@ router.get('/reseller/requests', AdminExpansionController.resellerRequests)
 router.post('/reseller/requests/:id/approve', AdminExpansionController.resellerApprove)
 router.post('/reseller/requests/:id/reject', AdminExpansionController.resellerReject)
 
+// ---- wallet ledger / adjustments / withdraw queue ----
+router.get('/wallet/ledger', AdminExpansionController.walletLedger)
+router.post('/wallet/adjust', AdminExpansionController.adjustBalance)
+router.get('/wallet/withdrawals', AdminExpansionController.withdrawQueue)
+router.post('/wallet/withdrawals/:id/approve', AdminExpansionController.withdrawDecide)
+router.post('/wallet/withdrawals/:id/paid', AdminExpansionController.withdrawDecide)
+router.post('/wallet/withdrawals/:id/reject', AdminExpansionController.withdrawDecide)
+
 router.get('/host-applications', AdminExpansionController.hostApplications)
 router.post('/host-applications/:id/approve', AdminExpansionController.hostApplicationDecide)
 router.post('/host-applications/:id/reject', AdminExpansionController.hostApplicationDecide)
