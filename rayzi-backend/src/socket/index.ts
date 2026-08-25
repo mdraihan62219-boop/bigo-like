@@ -157,6 +157,47 @@ export const initSocket = (server: Server) => {
       })
     })
 
+    socket.on('join-group-call', (roomId: unknown) => {
+      if (typeof roomId !== 'string' || !roomId) return
+      socket.join(`group_call_${roomId}`)
+      socket.to(`group_call_${roomId}`).emit('user-joined-group-call', { userId, username })
+    })
+
+    socket.on('leave-group-call', (roomId: unknown) => {
+      if (typeof roomId !== 'string' || !roomId) return
+      socket.leave(`group_call_${roomId}`)
+      socket.to(`group_call_${roomId}`).emit('user-left-group-call', { userId })
+    })
+
+    socket.on('group-call-message', (data: unknown) => {
+      const payload = data as { roomId?: unknown; message?: unknown }
+      if (typeof payload?.roomId !== 'string' || typeof payload?.message !== 'string') return
+      const text = payload.message.trim().slice(0, 500)
+      if (!text) return
+      io.to(`group_call_${payload.roomId}`).emit('group-call-message', {
+        userId, username, message: text,
+        timestamp: new Date().toISOString()
+      })
+    })
+
+    socket.on('group-call-seat-update', (data: unknown) => {
+      const payload = data as { roomId?: unknown; seatIndex?: unknown; field?: unknown; value?: unknown }
+      if (typeof payload?.roomId !== 'string') return
+      io.to(`group_call_${payload.roomId}`).emit('group-call-seat-update', {
+        userId, seatIndex: payload.seatIndex, field: payload.field, value: payload.value
+      })
+    })
+
+    socket.on('group-call-gift', (data: unknown) => {
+      const payload = data as { roomId?: unknown; giftId?: unknown; receiverId?: unknown; amount?: unknown }
+      if (typeof payload?.roomId !== 'string') return
+      io.to(`group_call_${payload.roomId}`).emit('group-call-gift', {
+        senderId: userId, senderUsername: username,
+        giftId: payload.giftId, receiverId: payload.receiverId,
+        amount: payload.amount, timestamp: new Date().toISOString()
+      })
+    })
+
     socket.on('private-message', safe(async (data: unknown) => {
       const payload = data as { to?: unknown; message?: unknown }
       if (typeof payload?.to !== 'string' || typeof payload?.message !== 'string') return

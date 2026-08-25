@@ -100,4 +100,44 @@ class SocketService {
   static void offPkScoreUpdate() {
     _socket?.off('pk-score-update');
   }
+
+  static void joinGroupCall(String roomId) {
+    _socket?.emit('join-group-call', roomId);
+  }
+
+  static void leaveGroupCall(String roomId) {
+    _socket?.emit('leave-group-call', roomId);
+  }
+
+  static void sendGroupCallMessage(String roomId, String message) {
+    _socket?.emit('group-call-message', {'roomId': roomId, 'message': message});
+  }
+
+  static void sendGroupCallGift(String roomId, String giftId, int amount) {
+    _socket?.emit('group-call-gift', {'roomId': roomId, 'giftId': giftId, 'amount': amount});
+  }
+
+  static void onGroupCallMessage(Function(dynamic) callback) {
+    _socket?.on('group-call-message', (data) => callback(data));
+  }
+
+  static void offGroupCallMessage() {
+    _socket?.off('group-call-message');
+  }
+
+  static void onGroupCallSeatUpdate(Function(dynamic) callback) {
+    _socket?.on('group-call-seat-update', (data) => callback(data));
+  }
+
+  static void offGroupCallSeatUpdate() {
+    _socket?.off('group-call-seat-update');
+  }
+
+  static void onGroupCallGift(Function(dynamic) callback) {
+    _socket?.on('group-call-gift', (data) => callback(data));
+  }
+
+  static void offGroupCallGift() {
+    _socket?.off('group-call-gift');
+  }
 }

@@ -10,6 +10,7 @@ import '../../services/socket_service.dart';
 import '../../services/api_service.dart';
 import '../../config/constants.dart';
 import '../../features/pk/pk_screens.dart';
+import '../../utils/api_error.dart';
 
 class StreamScreen extends StatefulWidget {
   final Map<String, dynamic> stream;
@@ -171,7 +172,7 @@ class _StreamScreenState extends State<StreamScreen> {
         } else if (e is DioException && e.response?.statusCode == 503) {
           message = 'Live streaming is not configured yet — please check back soon';
         } else {
-          message = 'Failed to join stream: $e';
+          message = 'Failed to join stream: ${friendlyError(e)}';
         }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(message)),
@@ -226,7 +227,7 @@ class _StreamScreenState extends State<StreamScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Camera toggle failed: $e')),
+          SnackBar(content: Text('Camera toggle failed: ${friendlyError(e)}')),
         );
       }
     }
@@ -239,7 +240,7 @@ class _StreamScreenState extends State<StreamScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Mute toggle failed: $e')),
+          SnackBar(content: Text('Mute toggle failed: ${friendlyError(e)}')),
         );
       }
     }
@@ -255,7 +256,7 @@ class _StreamScreenState extends State<StreamScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Share failed: $e')),
+          SnackBar(content: Text('Share failed: ${friendlyError(e)}')),
         );
       }
     }
@@ -572,7 +573,7 @@ class _StreamScreenState extends State<StreamScreen> {
                       } catch (e) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Gift failed: $e')),
+                            SnackBar(content: Text('Gift failed: ${friendlyError(e)}')),
                           );
                         }
                       }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import '../../services/api_service.dart';
+import '../../utils/api_error.dart';
 
 /// Shared helpers ----------------------------------------------------------
 
@@ -87,7 +88,7 @@ class _BuyCoinsScreenState extends State<BuyCoinsScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      showWalletSnackBar(context, 'Failed to load resellers: $e', error: true);
+      showWalletSnackBar(context, 'Failed to load resellers: ${friendlyError(e)}', error: true);
     }
   }
 
@@ -115,7 +116,7 @@ class _BuyCoinsScreenState extends State<BuyCoinsScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _submitting = false);
-      showWalletSnackBar(context, '$e', error: true);
+      showWalletSnackBar(context, friendlyError(e), error: true);
     }
   }
 
@@ -292,7 +293,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      showWalletSnackBar(context, 'Failed to load withdrawals: $e', error: true);
+      showWalletSnackBar(context, 'Failed to load withdrawals: ${friendlyError(e)}', error: true);
     }
   }
 
@@ -324,7 +325,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _submitting = false);
-      showWalletSnackBar(context, '$e', error: true);
+      showWalletSnackBar(context, friendlyError(e), error: true);
     }
   }
 
@@ -510,7 +511,7 @@ class _WalletLedgerScreenState extends State<WalletLedgerScreen> {
       if (!mounted) return;
       _rows = [];
       _loading = false;
-      showWalletSnackBar(context, 'Failed to load ledger: $e', error: true);
+      showWalletSnackBar(context, 'Failed to load ledger: ${friendlyError(e)}', error: true);
     }
   }
 

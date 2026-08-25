@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../services/api_service.dart';
+import '../../utils/api_error.dart';
 
 class BlockListScreen extends StatefulWidget {
   const BlockListScreen({super.key});
@@ -30,7 +31,7 @@ class _BlockListScreenState extends State<BlockListScreen> {
         _loading = false;
       });
     } catch (e) {
-      setState(() { _error = 'Failed to load block list: $e'; _loading = false; });
+      setState(() { _error = friendlyError(e); _loading = false; });
     }
   }
 
@@ -44,11 +45,7 @@ class _BlockListScreenState extends State<BlockListScreen> {
         );
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to unblock: $e')),
-        );
-      }
+      if (mounted) showApiError(context, e);
     }
   }
 

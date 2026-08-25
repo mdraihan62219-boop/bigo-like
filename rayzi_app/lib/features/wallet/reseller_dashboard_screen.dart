@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'wallet_v2_screens.dart' show showWalletSnackBar;
 import '../../services/api_service.dart';
+import '../../utils/api_error.dart';
 
 /// RESELLER DASHBOARD — visible only to accounts with an active
 /// reseller_agents row. Shows their shareable code, credit balance,
@@ -45,7 +46,7 @@ class _ResellerDashboardScreenState extends State<ResellerDashboardScreen> {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = '$e';
+        _error = friendlyError(e);
       });
     }
   }
@@ -58,7 +59,7 @@ class _ResellerDashboardScreenState extends State<ResellerDashboardScreen> {
       _load();
     } catch (e) {
       if (!mounted) return;
-      showWalletSnackBar(context, 'Approve failed: $e', error: true);
+      showWalletSnackBar(context, 'Approve failed: ${friendlyError(e)}', error: true);
     }
   }
 
@@ -87,7 +88,7 @@ class _ResellerDashboardScreenState extends State<ResellerDashboardScreen> {
       _load();
     } catch (e) {
       if (!mounted) return;
-      showWalletSnackBar(context, 'Reject failed: $e', error: true);
+      showWalletSnackBar(context, 'Reject failed: ${friendlyError(e)}', error: true);
     }
   }
 

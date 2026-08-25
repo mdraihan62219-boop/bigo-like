@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../services/api_service.dart';
+import '../../utils/api_error.dart';
 
 class ShopHomeScreen extends StatelessWidget {
   const ShopHomeScreen({super.key});
@@ -116,7 +117,7 @@ class _ShopTierScreenState extends State<ShopTierScreen> {
           .showSnackBar(const SnackBar(content: Text('Purchased! Check My Items to equip.')));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Purchase failed: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Purchase failed: ${friendlyError(e)}')));
     } finally {
       if (mounted) setState(() => _purchasingId = false);
     }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../services/api_service.dart';
+import '../../utils/api_error.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -30,7 +31,7 @@ class _SearchScreenState extends State<SearchScreen> {
       setState(() => _searching = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Search failed: $e')),
+          SnackBar(content: Text('Search failed: ${friendlyError(e)}')),
         );
       }
     }

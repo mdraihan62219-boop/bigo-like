@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../services/api_service.dart';
 import '../../config/routes.dart';
+import '../../utils/api_error.dart';
 
 class LiveTab extends StatefulWidget {
   const LiveTab({super.key});
@@ -48,7 +49,7 @@ class _LiveTabState extends State<LiveTab> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load: $e')),
+          SnackBar(content: Text('Failed to load: ${friendlyError(e)}')),
         );
       }
     }

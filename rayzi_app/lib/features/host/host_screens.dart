@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../services/api_service.dart';
 import '../../services/storage_service.dart';
+import '../../utils/api_error.dart';
 
 /// Submit a reseller recharge request (amount + payment proof screenshot).
 class RechargeFromResellerScreen extends StatefulWidget {
@@ -50,8 +51,7 @@ class _RechargeFromResellerScreenState extends State<RechargeFromResellerScreen>
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Failed: $e')));
+      showApiError(context, e);
       setState(() => _submitting = false);
     }
   }
@@ -192,7 +192,9 @@ class _HostRequestScreenState extends State<HostRequestScreen> {
       final data = response.data['data'];
       if (!mounted || data == null) return;
       setState(() => _status = data['status'] as String?);
-    } catch (_) {}
+    } catch (_) {
+      // Status check is non-critical; silently ignore failures.
+    }
   }
 
   Future<void> _submit() async {
@@ -210,8 +212,7 @@ class _HostRequestScreenState extends State<HostRequestScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _submitting = false);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Failed: $e')));
+      showApiError(context, e);
     }
   }
 

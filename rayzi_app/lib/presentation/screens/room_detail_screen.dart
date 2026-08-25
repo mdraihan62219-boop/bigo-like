@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import '../../services/agora_service.dart';
 import '../../services/api_service.dart';
+import '../../utils/api_error.dart';
 
 class RoomDetailScreen extends StatefulWidget {
   final String roomId;
@@ -38,7 +39,7 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
       if (!mounted) return;
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load room: $e')));
+          SnackBar(content: Text('Failed to load room: ${friendlyError(e)}')));
     }
   }
 
@@ -109,7 +110,7 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
       if (!mounted) return;
       setState(() => _joining = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to join room: $e')),
+        SnackBar(content: Text('Failed to join room: ${friendlyError(e)}')),
       );
     }
   }

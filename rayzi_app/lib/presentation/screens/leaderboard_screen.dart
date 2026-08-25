@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../services/api_service.dart';
 import '../../features/shared/decorated_widgets.dart';
+import '../../utils/api_error.dart';
 
 /// Opens the leaderboard the way the reference app does — as a rounded
 /// modal sheet with a close button, not a pushed full-screen page.
@@ -102,7 +103,7 @@ class _LeaderboardSheetState extends State<LeaderboardSheet>
       if (!mounted) return;
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Failed to load: $e')));
+          .showSnackBar(SnackBar(content: Text('Failed to load: ${friendlyError(e)}')));
     }
   }
 

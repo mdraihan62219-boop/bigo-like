@@ -12,6 +12,7 @@ import '../../features/shared/decorated_widgets.dart';
 import '../../features/profile/history_screen.dart';
 import '../../features/profile/block_list_screen.dart';
 import 'leaderboard_screen.dart' show showLeaderboardSheet;
+import '../../utils/api_error.dart';
 
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
@@ -37,7 +38,7 @@ class _ProfileTabState extends State<ProfileTab> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load profile summary: $e')));
+          SnackBar(content: Text('Failed to load profile summary: ${friendlyError(e)}')));
     }
   }
 
@@ -54,7 +55,7 @@ class _ProfileTabState extends State<ProfileTab> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Share failed: $e')),
+          SnackBar(content: Text('Share failed: ${friendlyError(e)}')),
         );
       }
     }

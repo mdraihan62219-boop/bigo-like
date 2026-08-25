@@ -4,6 +4,7 @@ import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../services/api_service.dart';
 import '../../services/agora_service.dart';
+import '../../utils/api_error.dart';
 
 class CreateStreamScreen extends StatefulWidget {
   const CreateStreamScreen({super.key});
@@ -35,7 +36,7 @@ class _CreateStreamScreenState extends State<CreateStreamScreen> {
       await AgoraService.engine!.startPreview();
       if (mounted) setState(() => _cameraReady = true);
     } catch (e) {
-      if (mounted) setState(() => _error = 'Failed to initialize camera: $e');
+      if (mounted) setState(() => _error = 'Failed to initialize camera: ${friendlyError(e)}');
     }
   }
 
@@ -55,7 +56,7 @@ class _CreateStreamScreenState extends State<CreateStreamScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to start stream: $e')),
+          SnackBar(content: Text('Failed to start stream: ${friendlyError(e)}')),
         );
       }
     }

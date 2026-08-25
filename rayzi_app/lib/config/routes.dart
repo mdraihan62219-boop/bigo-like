@@ -11,6 +11,9 @@ import '../features/inbox/inbox_screens.dart';
 import '../features/wallet/wallet_v2_screens.dart';
 import '../features/wallet/reseller_dashboard_screen.dart';
 import '../features/games/games_home_screen.dart';
+import '../features/group_call/group_call_join_screen.dart';
+import '../features/group_call/group_call_room_screen.dart';
+import '../features/group_call/create_group_call_screen.dart';
 import '../presentation/screens/room_detail_screen.dart';
 
 class AppRoutes {
@@ -110,5 +113,8 @@ class AppRoutes {
       final gameKey = args is String ? args : '2048';
       return GameDetailScreen(gameKey: gameKey);
     },
+    '/group-calls': (context) => const GroupCallJoinScreen(),
+    '/group-call-room': (context) => const GroupCallRoomScreen(),
+    '/create-group-call': (context) => const CreateGroupCallScreen(),
   };
 }

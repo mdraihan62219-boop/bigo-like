@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../config/routes.dart';
 import '../../services/api_service.dart';
 import '../../services/storage_service.dart';
+import '../../utils/api_error.dart';
 import '../shared/decorated_widgets.dart';
 import '../../presentation/screens/reels_screen.dart' show openReelsViewer;
 
@@ -203,7 +204,9 @@ class PostCard extends StatelessWidget {
     try {
       await ApiService.post('/feed/posts/${post['id']}/like');
       onChanged?.call();
-    } catch (_) {}
+    } catch (e) {
+      if (context.mounted) showApiError(context, e);
+    }
   }
 
   Future<void> _comment(BuildContext context) async {
@@ -235,7 +238,9 @@ class PostCard extends StatelessWidget {
         await ApiService.post('/feed/posts/${post['id']}/comments',
             data: {'content': controller.text.trim()});
         onChanged?.call();
-      } catch (_) {}
+      } catch (e) {
+        if (context.mounted) showApiError(context, e);
+      }
     }
     controller.dispose();
   }
@@ -350,7 +355,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+      showApiError(context, e);
       setState(() => _submitting = false);
     }
   }
@@ -431,7 +436,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+      showApiError(context, e);
       setState(() => _submitting = false);
     }
   }

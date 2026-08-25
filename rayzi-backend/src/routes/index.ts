@@ -21,6 +21,7 @@ import pkRoutes from './pk.routes'
 import inboxRoutes from './inbox.routes'
 import uploadRoutes from './upload.routes'
 import gamesRoutes from './games.routes'
+import groupCallRoutes from './groupCall.routes'
 
 const router = Router()
 
@@ -46,5 +47,6 @@ router.use('/pk', pkRoutes)
 router.use('/inbox', inboxRoutes)
 router.use('/uploads', uploadRoutes)
 router.use('/games', gamesRoutes)
+router.use('/group-calls', groupCallRoutes)
 
 export default router

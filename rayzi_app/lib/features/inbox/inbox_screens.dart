@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../services/api_service.dart';
 import '../../services/storage_service.dart';
+import '../../utils/api_error.dart';
 
 /// Inbox: conversation list with last-message preview + unread badges.
 class InboxListScreen extends StatefulWidget {
@@ -134,7 +135,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
       if (!mounted) return;
       setState(() => _messages = response.data['data'] ?? []);
       ApiService.put('/inbox/conversations/$_conversationId/read').then<void>((_) {}, onError: (Object _) {});
-    } catch (_) {}
+    } catch (e) {
+      if (mounted) showApiError(context, e);
+    }
   }
 
   Future<void> _sendText() async {
@@ -145,7 +148,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
       await ApiService.post('/inbox/conversations/$_conversationId/messages',
           data: {'message_type': 'text', 'text_content': text});
       _load();
-    } catch (_) {}
+    } catch (e) {
+      if (mounted) showApiError(context, e);
+    }
   }
 
   Future<void> _sendPhoto() async {
@@ -160,7 +165,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
       _load();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Send failed: $e')));
+      showApiError(context, e);
     }
   }
 
@@ -185,7 +190,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
       _load();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Send failed: $e')));
+      showApiError(context, e);
     } finally {
       if (mounted) setState(() => _recordingReel = false);
     }
@@ -202,7 +207,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('${video ? 'Video' : 'Audio'} call starting… (Agora channel ready)')));
-    } catch (_) {}
+    } catch (e) {
+      if (mounted) showApiError(context, e);
+    }
   }
 
   Widget _bubble(Map<String, dynamic> msg) {

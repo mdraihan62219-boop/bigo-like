@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../config/routes.dart';
 import '../../services/api_service.dart';
+import '../../utils/api_error.dart';
 
 class RoomsTab extends StatefulWidget {
   const RoomsTab({super.key});
@@ -30,11 +31,7 @@ class _RoomsTabState extends State<RoomsTab> {
       });
     } catch (e) {
       setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load: $e')),
-        );
-      }
+      if (mounted) showApiError(context, e);
     }
   }
 
