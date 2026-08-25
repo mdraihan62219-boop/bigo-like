@@ -33,12 +33,10 @@ BEGIN
      LIMIT 1;
     IF FOUND THEN
       EXECUTE format('ALTER TABLE public.wallet_ledger DROP CONSTRAINT %I', v_conname);
+      v_def := '''reseller_recharge'',''admin_grant'',''admin_deduction'',''gift_sent'',''gift_received'',''shop_purchase'',''withdraw_request'',''withdraw_reversal'',''pk_reward'',''game_reward'',''other''';
       EXECUTE format(
         'ALTER TABLE public.wallet_ledger ADD CONSTRAINT %I CHECK (reason IN (%s))',
-        v_conname,
-        $$  'reseller_recharge','admin_grant','admin_deduction','gift_sent',
-            'gift_received','shop_purchase','withdraw_request','withdraw_reversal',
-            'pk_reward','game_reward','other' $$);
+        v_conname, v_def);
     ELSE
       RAISE EXCEPTION 'wallet_ledger reason CHECK constraint not found';
     END IF;
