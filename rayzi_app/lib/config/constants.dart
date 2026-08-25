@@ -35,7 +35,7 @@ class AppConstants {
   /// the Google provider in Supabase → Authentication → Providers.
   static const String googleWebClientId = String.fromEnvironment(
     'GOOGLE_WEB_CLIENT_ID',
-    defaultValue: '',
+    defaultValue: '971203378884-morgn581t7f549edddi9dm9d96au55jr.apps.googleusercontent.com',
   );
 
   static const int paginationLimit = 20;
