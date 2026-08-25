@@ -24,7 +24,7 @@ class AppConstants {
   /// 503 "Agora not configured" for token endpoints when it is a placeholder.
   static const String agoraAppId = String.fromEnvironment(
     'AGORA_APP_ID',
-    defaultValue: '',
+    defaultValue: 'ecab8f1a425b46459cf72888e8532dd9',
   );
 
   /// Google Cloud "Web application" OAuth client ID (NOT the Android one).
