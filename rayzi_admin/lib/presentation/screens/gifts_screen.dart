@@ -113,7 +113,7 @@ class _GiftsScreenState extends State<GiftsScreen> {
           ? Center(child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Failed to load gifts'),
+                const Text('Failed to load gifts'),
                 const SizedBox(height: 8),
                 ElevatedButton(onPressed: _load, child: const Text('Retry')),
               ],

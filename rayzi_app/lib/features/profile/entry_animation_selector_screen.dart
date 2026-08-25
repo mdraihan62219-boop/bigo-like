@@ -46,10 +46,12 @@ class _EntryAnimationSelectorScreenState
         final all = results[0].data['data'] ?? [];
         _owned = all.where((i) => i['shop_items']?['category'] == 'entry_animation').toList();
         _currentId = results[1].data['data']?['equipped_entry_animation_id'];
-        _isLoading = false;
+        _isLoading = _owned.isEmpty ? false : false;
       });
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load entry animations: $e')));
       setState(() => _isLoading = false);
     }
   }
@@ -72,9 +74,24 @@ class _EntryAnimationSelectorScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Entry Animations')),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : GridView.builder(
+body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _owned.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.auto_awesome, size: 48.r, color: Colors.grey),
+                        SizedBox(height: 12.h),
+                        Text('No entry animations owned',
+                            style: TextStyle(fontSize: 14.sp, color: Colors.grey)),
+                        SizedBox(height: 4.h),
+                        Text('Earn animations from shop packs.',
+                            style: TextStyle(fontSize: 11.sp, color: Colors.grey)),
+                      ],
+                    ),
+                  )
+                : GridView.builder(
               padding: EdgeInsets.all(16.w),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2, crossAxisSpacing: 12.w, mainAxisSpacing: 12.h,

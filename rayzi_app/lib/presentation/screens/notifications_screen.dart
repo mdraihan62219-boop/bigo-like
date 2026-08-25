@@ -84,7 +84,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ),
                     ],
                   ),
-                  tileColor: n['is_read'] == true ? null : Theme.of(context).primaryColor.withOpacity(0.1),
+                  tileColor: n['is_read'] == true ? null : Theme.of(context).primaryColor.withAlpha((0.1 * 255).round()),
                   onTap: () async {
                     await ApiService.post('/notifications/${n['id']}/read');
                     _load();

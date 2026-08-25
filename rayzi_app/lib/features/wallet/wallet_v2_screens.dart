@@ -161,7 +161,7 @@ class _BuyCoinsScreenState extends State<BuyCoinsScreen> {
                               Container(
                                 padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                                  color: Theme.of(context).colorScheme.primary.withAlpha((0.15 * 255).round()),
                                   borderRadius: BorderRadius.circular(8.r),
                                 ),
                                 child: Row(
@@ -503,13 +503,13 @@ class _WalletLedgerScreenState extends State<WalletLedgerScreen> {
       final res = await ApiService.get('/wallet/ledger',
           queryParameters: {'limit': 100});
       if (!mounted) return;
-      setState(() {
-        _rows = res.data['data'] ?? [];
-        _loading = false;
-      });
+      final data = res.data['data'] ?? [];
+      _rows = data is List ? data : [];
+      _loading = false;
     } catch (e) {
       if (!mounted) return;
-      setState(() => _loading = false);
+      _rows = [];
+      _loading = false;
       showWalletSnackBar(context, 'Failed to load ledger: $e', error: true);
     }
   }
@@ -522,7 +522,29 @@ class _WalletLedgerScreenState extends State<WalletLedgerScreen> {
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
               onRefresh: _load,
-              child: ListView.separated(
+              child: _rows.isEmpty
+                  ? ListView(children: [
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: 96.h),
+                        child: Column(
+                          children: [
+                            Icon(Icons.receipt_long_outlined,
+                                size: 48.r, color: Colors.grey),
+                            SizedBox(height: 12.h),
+                            Text('No movements yet',
+                                style: TextStyle(
+                                    fontSize: 14.sp, color: Colors.grey)),
+                            SizedBox(height: 4.h),
+                            Text('Recharges, gifts, purchases and withdrawals '
+                                'will appear here.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 11.sp, color: Colors.grey)),
+                          ],
+                        ),
+                      ),
+                    ])
+                  : ListView.separated(
                 padding: EdgeInsets.all(16.w),
                 itemCount: _rows.length,
                 separatorBuilder: (_, __) => Divider(

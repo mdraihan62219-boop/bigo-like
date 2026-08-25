@@ -93,7 +93,7 @@ class _UsersScreenState extends State<UsersScreen> {
           ? Center(child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Failed to load users'),
+                const Text('Failed to load users'),
                 const SizedBox(height: 8),
                 ElevatedButton(onPressed: _loadUsers, child: const Text('Retry')),
               ],

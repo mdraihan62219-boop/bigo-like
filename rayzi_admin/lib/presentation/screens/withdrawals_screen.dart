@@ -100,7 +100,7 @@ class _WithdrawalsScreenState extends State<WithdrawalsScreen> {
           ? Center(child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Failed to load withdrawals'),
+                const Text('Failed to load withdrawals'),
                 const SizedBox(height: 8),
                 ElevatedButton(onPressed: _load, child: const Text('Retry')),
               ],

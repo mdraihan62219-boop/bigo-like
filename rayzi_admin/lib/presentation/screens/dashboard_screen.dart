@@ -54,7 +54,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   const Icon(Icons.error_outline, size: 48, color: Colors.red),
                   const SizedBox(height: 12),
-                  Text('Failed to load stats'),
+                  const Text('Failed to load stats'),
                   const SizedBox(height: 8),
                   Text(_error!, style: Theme.of(context).textTheme.bodySmall),
                   const SizedBox(height: 16),

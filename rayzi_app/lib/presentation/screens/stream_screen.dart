@@ -136,7 +136,7 @@ class _StreamScreenState extends State<StreamScreen> {
       return AgoraVideoView(
         controller: VideoViewController(
           rtcEngine: engine,
-          canvas: VideoCanvas(uid: 0),
+          canvas: const VideoCanvas(uid: 0),
         ),
       );
     }

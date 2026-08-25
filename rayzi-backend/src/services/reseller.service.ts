@@ -87,6 +87,67 @@ export class ResellerService {
     return data
   }
 
+  /**
+   * Reseller Dashboard payload. Returns `agent: null` when the caller has
+   * no active reseller_agents row (the app uses that to hide/gate the UI).
+   * Pending requests are scoped to the caller's own agent id, and ledger
+   * activity is scoped to the caller's own credit pool.
+   */
+  static async dashboard(userId: string) {
+    const { data: agent, error: agentErr } = await supabase
+      .from('reseller_agents')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .maybeSingle()
+    if (agentErr) throw new Error(agentErr.message)
+    if (!agent) return { agent: null, pending_requests: [], recent_ledger: [] }
+
+    const [pendingRes, ledgerRes] = await Promise.all([
+      supabase
+        .from('recharge_requests')
+        .select('*, profiles!recharge_requests_requester_id_fkey(username, display_name)')
+        .eq('reseller_id', (agent as { id: string }).id)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: true }),
+      supabase
+        .from('wallet_ledger')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(30),
+    ])
+    if (pendingRes.error) throw new Error(pendingRes.error.message)
+    if (ledgerRes.error) throw new Error(ledgerRes.error.message)
+
+    return {
+      agent,
+      pending_requests: pendingRes.data ?? [],
+      recent_ledger: ledgerRes.data ?? [],
+    }
+  }
+
+  /**
+   * Scoped approve/reject for DASHBOARD callers. The RPC itself enforces:
+   * full admins pass unrestricted; a reseller-role caller may only touch
+   * requests whose reseller_id equals their own reseller_agents.id.
+   */
+  static async approveScoped(requestId: string, callerId: string) {
+    const { error } = await supabase.rpc('approve_recharge_request', {
+      p_request_id: requestId, p_actor: callerId,
+    })
+    if (error) return { ok: false as const, message: error.message }
+    return { ok: true as const }
+  }
+
+  static async rejectScoped(requestId: string, callerId: string, reason: string) {
+    const { error } = await supabase.rpc('reject_recharge_request', {
+      p_request_id: requestId, p_actor: callerId, p_reason: reason,
+    })
+    if (error) return { ok: false as const, message: error.message }
+    return { ok: true as const }
+  }
+
   static async adminUpsertAgent(body: Record<string, unknown>) {
     const userId = typeof body.user_id === 'string' ? body.user_id : ''
     if (!userId) throw new Error('user_id required')

@@ -66,7 +66,7 @@ class _StreamsScreenState extends State<StreamsScreen> {
           ? Center(child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Failed to load streams'),
+                const Text('Failed to load streams'),
                 const SizedBox(height: 8),
                 ElevatedButton(onPressed: _load, child: const Text('Retry')),
               ],

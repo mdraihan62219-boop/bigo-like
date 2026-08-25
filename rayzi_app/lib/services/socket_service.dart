@@ -1,17 +1,17 @@
 import 'package:flutter/foundation.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:socket_io_client/socket_io_client.dart' as socket_io;
 import '../config/constants.dart';
 import 'token_store.dart';
 
 class SocketService {
-  static IO.Socket? _socket;
+  static socket_io.Socket? _socket;
 
   static Future<void> connect() async {
     if (_socket != null && _socket!.connected) return;
 
     final token = await TokenStore.read();
 
-    _socket = IO.io(AppConstants.socketUrl, IO.OptionBuilder()
+    _socket = socket_io.io(AppConstants.socketUrl, socket_io.OptionBuilder()
       .setTransports(['websocket'])
       .setAuth({'token': token})
       .enableAutoConnect()

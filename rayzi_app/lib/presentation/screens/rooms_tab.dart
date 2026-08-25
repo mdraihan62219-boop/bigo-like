@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../config/routes.dart';
 import '../../services/api_service.dart';
 
 class RoomsTab extends StatefulWidget {
@@ -67,13 +68,18 @@ class _RoomsTabState extends State<RoomsTab> {
                         trailing: Container(
                           padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                           decoration: BoxDecoration(
-                            color: Colors.green.withOpacity(0.2),
+                            color: Colors.green.withAlpha((0.2 * 255).round()),
                             borderRadius: BorderRadius.circular(12.r),
                           ),
                           child: Text('ACTIVE',
                             style: TextStyle(color: Colors.green, fontSize: 10.sp)),
                         ),
-                        onTap: () {},
+                        onTap: () {
+                          final roomId = room['id'] as String?;
+                          if (roomId != null) {
+                            Navigator.pushNamed(context, AppRoutes.room, arguments: {'roomId': roomId});
+                          }
+                        },
                       ),
                     );
                   },

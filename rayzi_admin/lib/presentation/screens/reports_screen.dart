@@ -76,7 +76,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
           ? Center(child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Failed to load reports'),
+                const Text('Failed to load reports'),
                 const SizedBox(height: 8),
                 ElevatedButton(onPressed: _load, child: const Text('Retry')),
               ],

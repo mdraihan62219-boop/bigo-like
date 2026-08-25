@@ -1,6 +1,7 @@
 import { Response } from 'express'
 import bcrypt from 'bcryptjs'
 import { supabase } from '../config/database'
+import { AgoraService, AgoraNotConfiguredError } from '../services/agora.service'
 import { success, error } from '../utils/response'
 import { pageParam, limitParam } from '../utils/pagination'
 import { AuthenticatedRequest } from '../types'
@@ -44,6 +45,71 @@ export class RoomController {
 
       if (insertError) return error(res, 400, insertError.message)
       return success(res, sanitizeRoom(data), 'Room created')
+    } catch (err: any) {
+      return error(res, 500, err.message)
+    }
+  }
+
+  /**
+   * Agora voice-channel token for an audio room. Mirrors the stream token
+   * endpoint (same service, same uid derivation) — no second token path.
+   * Channel name is derived deterministically (`room_<id>`) because the
+   * rooms table has no channel column; host and participants therefore
+   * always land in the same channel.
+   * Role mapping: room host / 'speaker' participants publish audio;
+   * 'listener' participants join as audience.
+   */
+  static async getToken(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { roomId } = req.params
+      const { data: room } = await supabase
+        .from('rooms')
+        .select('id, host_id, status, is_private, password')
+        .eq('id', roomId).single()
+      if (!room) return error(res, 404, 'Room not found')
+      if (room.status !== 'active') return error(res, 400, 'Room is not active')
+
+      const { data: participant } = await supabase
+        .from('room_participants')
+        .select('role')
+        .eq('room_id', roomId)
+        .eq('user_id', req.user!.id)
+        .maybeSingle()
+
+      const isHost = room.host_id === req.user!.id
+      const participantRole = (participant?.role as string | undefined) ?? null
+
+      // Private rooms require the password before a token is issued to
+      // anyone but the host (same rule as streams).
+      if (room.is_private && !isHost) {
+        const supplied = typeof req.body?.password === 'string' && req.body.password
+          ? req.body.password
+          : typeof req.query.password === 'string' ? req.query.password : ''
+        if (!supplied || !room.password || !(await bcrypt.compare(supplied, room.password))) {
+          return error(res, 403, 'Room password required or incorrect')
+        }
+      }
+
+      const canPublish = isHost || participantRole === 'host' || participantRole === 'speaker'
+      const channelName = `room_${roomId}`
+      const uid = parseInt(req.user!.id.replace(/-/g, '').slice(0, 8), 16)
+      let token: string
+      try {
+        token = AgoraService.generateToken(channelName, uid, canPublish ? 'host' : 'audience')
+      } catch (agoraErr) {
+        if (agoraErr instanceof AgoraNotConfiguredError) {
+          return error(res, 503, 'Agora not configured')
+        }
+        throw agoraErr
+      }
+
+      return success(res, {
+        token,
+        channel_name: channelName,
+        uid,
+        role: canPublish ? 'speaker' : 'listener',
+        is_host: isHost,
+      })
     } catch (err: any) {
       return error(res, 500, err.message)
     }

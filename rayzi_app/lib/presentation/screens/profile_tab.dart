@@ -30,7 +30,11 @@ class _ProfileTabState extends State<ProfileTab> {
       final response = await ApiService.get('/profile/summary');
       if (!mounted) return;
       setState(() => _summary = response.data['data']);
-    } catch (_) {}
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load profile summary: $e')));
+    }
   }
 
   String get _userId => _summary?['id'] as String? ?? '';
@@ -112,6 +116,9 @@ class _ProfileTabState extends State<ProfileTab> {
                   _menu(Icons.workspace_premium, 'Shop (KING / CROWN / VVIP / VIP)', '/shop'),
                   _menu(Icons.card_giftcard, 'My Items', '/inventory'),
                   _menu(Icons.receipt_long, 'Recharge from Reseller', '/reseller-recharge'),
+                  if (_summary?['is_reseller'] == true)
+                    _menu(Icons.storefront, 'Reseller Dashboard', '/reseller-dashboard'),
+                  _menu(Icons.videogame_asset, 'Mini-Games', '/games'),
                   _menu(Icons.history, 'My Recharge Requests', '/my-recharge-requests'),
                   _menu(Icons.live_tv, 'Host Request', '/host-request'),
                   _menu(Icons.palette, 'Theme', '/themes'),

@@ -32,10 +32,12 @@ class _ThemeSelectorScreenState extends State<ThemeSelectorScreen> {
         final all = results[0].data['data'] ?? [];
         _owned = all.where((i) => i['shop_items']?['category'] == 'theme').toList();
         _currentThemeId = results[1].data['data']?['equipped_theme_id'];
-        _isLoading = false;
+        _isLoading = _owned.isEmpty ? false : false;
       });
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load themes: $e')));
       setState(() => _isLoading = false);
     }
   }
@@ -57,9 +59,24 @@ class _ThemeSelectorScreenState extends State<ThemeSelectorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Themes')),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : GridView.builder(
+body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _owned.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.palette, size: 48.r, color: Colors.grey),
+                        SizedBox(height: 12.h),
+                        Text('No themes owned',
+                            style: TextStyle(fontSize: 14.sp, color: Colors.grey)),
+                        SizedBox(height: 4.h),
+                        Text('Unlock themes from the shop.',
+                            style: TextStyle(fontSize: 11.sp, color: Colors.grey)),
+                      ],
+                    ),
+                  )
+                : GridView.builder(
               padding: EdgeInsets.all(16.w),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2, crossAxisSpacing: 12.w, mainAxisSpacing: 12.h,

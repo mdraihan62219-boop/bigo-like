@@ -9,6 +9,9 @@ import '../features/profile/theme_selector_screen.dart';
 import '../features/profile/entry_animation_selector_screen.dart';
 import '../features/inbox/inbox_screens.dart';
 import '../features/wallet/wallet_v2_screens.dart';
+import '../features/wallet/reseller_dashboard_screen.dart';
+import '../features/games/games_home_screen.dart';
+import '../presentation/screens/room_detail_screen.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -58,7 +61,11 @@ class AppRoutes {
         initialIndex: (map['initialIndex'] as int?) ?? 0,
       );
     },
-    room: (context) => const ComingSoonScreen(title: 'Audio room'),
+    room: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final map = args is Map ? args : const {};
+      return RoomDetailScreen(roomId: (map['roomId'] as String?) ?? '');
+    },
     createRoom: (context) => const ComingSoonScreen(title: 'Create audio room'),
     giftStore: (context) => const ComingSoonScreen(title: 'Gift store'),
     chat: (context) => const ComingSoonScreen(title: 'Chat'),
@@ -93,6 +100,15 @@ class AppRoutes {
       final args = ModalRoute.of(context)?.settings.arguments;
       final id = args is Map ? args['id'] as String? : null;
       return PkBattleView(battleId: id ?? '');
+    },
+    // ---- reseller dashboard ----
+    '/reseller-dashboard': (context) => const ResellerDashboardScreen(),
+    // ---- mini-games ----
+    '/games': (context) => const GamesHomeScreen(),
+    '/game-detail': (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final gameKey = args is String ? args : '2048';
+      return GameDetailScreen(gameKey: gameKey);
     },
   };
 }

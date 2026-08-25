@@ -21,7 +21,7 @@ class AgoraService {
     if (_engine != null) return;
     if (!isConfigured) throw const AgoraConfigurationException();
     _engine = createAgoraRtcEngine();
-    await _engine!.initialize(RtcEngineContext(
+    await _engine!.initialize(const RtcEngineContext(
       appId: AppConstants.agoraAppId,
       channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
     ));
@@ -45,7 +45,33 @@ class AgoraService {
       token: token,
       channelId: channelName,
       uid: uid,
-      options: ChannelMediaOptions(),
+      options: const ChannelMediaOptions(),
+    );
+  }
+
+  /// Voice-only join for Audio Rooms. Shares the same engine/token service
+  /// as live streaming; video stays off so only microphone audio publishes.
+  static Future<void> joinAudioChannel(
+    String channelName,
+    String token,
+    int uid,
+    bool canPublish,
+  ) async {
+    await _engine!.setClientRole(
+      role: canPublish ? ClientRoleType.clientRoleBroadcaster : ClientRoleType.clientRoleAudience,
+    );
+
+    await _engine!.disableVideo();
+    await _engine!.enableAudio();
+    // A previous video session may have left the local camera publishing;
+    // force-mute so an audio-room join never leaks camera frames.
+    await _engine!.muteLocalVideoStream(true);
+
+    await _engine!.joinChannel(
+      token: token,
+      channelId: channelName,
+      uid: uid,
+      options: const ChannelMediaOptions(),
     );
   }
 

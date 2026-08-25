@@ -29,13 +29,22 @@ class CustomTextField extends StatelessWidget {
       keyboardType: keyboardType,
       maxLines: maxLines,
       validator: validator,
-      style: TextStyle(fontSize: 15.sp),
+      style: TextStyle(
+          fontSize: 15.sp,
+          color: Theme.of(context).colorScheme.onSurface),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(color: Colors.grey, fontSize: 14.sp),
-        prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
+        prefixIcon: prefixIcon != null
+            ? Icon(prefixIcon,
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withAlpha((0.7 * 255).round()))
+            : null,
         filled: true,
-        fillColor: const Color(0xFF16213E),
+        // Theme-aware: navy card in dark mode, white in light mode.
+        fillColor: Theme.of(context).colorScheme.surface,
         contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),

@@ -15,15 +15,19 @@ export class ProfileExtrasController {
   static async summary(req: AuthenticatedRequest, res: Response) {
     try {
       const userId = req.params.userId || req.user!.id
-      const [profileRes, friendsRes] = await Promise.all([
+      const [profileRes, friendsRes, agentRes] = await Promise.all([
         supabase.from('profiles').select(SUMMARY_SELECT).eq('id', userId).single(),
         supabase.from('friend_requests').select('*', { count: 'exact', head: true })
           .eq('status', 'accepted').or(`requester_id.eq.${userId},addressee_id.eq.${userId}`),
+        // Drives the "Reseller Dashboard" menu gate (active agents only).
+        supabase.from('reseller_agents').select('id')
+          .eq('user_id', userId).eq('is_active', true).limit(1),
       ])
       if (profileRes.error) return error(res, 404, profileRes.error.message)
       return success(res, {
         ...profileRes.data,
         friends_count: friendsRes.count ?? 0,
+        is_reseller: (agentRes.data?.length ?? 0) > 0,
       })
     } catch (err: any) {
       return error(res, 500, err.message)
