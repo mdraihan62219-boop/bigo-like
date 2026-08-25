@@ -47,6 +47,10 @@ class SocketService {
     _socket?.on('chat-message', (data) => callback(data));
   }
 
+  static void offChatMessage() {
+    _socket?.off('chat-message');
+  }
+
   static void onGiftReceived(Function(dynamic) callback) {
     _socket?.on('gift-received', (data) => callback(data));
   }
@@ -59,8 +63,24 @@ class SocketService {
     _socket?.on('user-left', (data) => callback(data));
   }
 
-  static void offChatMessage() {
-    _socket?.off('chat-message');
+  static void offUserJoined() {
+    _socket?.off('user-joined');
+  }
+
+  static void offUserLeft() {
+    _socket?.off('user-left');
+  }
+
+  static void offGiftReceived() {
+    _socket?.off('gift-received');
+  }
+
+  static void onPkMatched(Function(dynamic) callback) {
+    _socket?.on('pk-matched', (data) => callback(data));
+  }
+
+  static void offPkMatched() {
+    _socket?.off('pk-matched');
   }
 
   /// Joins the pseudo-room used for PK battle score pushes

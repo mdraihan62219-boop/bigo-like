@@ -54,9 +54,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 SizedBox(height: 16.h),
                 CustomTextField(
                   controller: _usernameController,
-                  hint: 'Username',
+                  hint: 'Username (letters, numbers, underscores)',
                   prefixIcon: Icons.alternate_email,
-                  validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Required';
+                    if (v.length < 3) return 'Username must be at least 3 characters';
+                    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(v)) return 'Only letters, numbers, and _ allowed';
+                    return null;
+                  },
                 ),
                 SizedBox(height: 16.h),
                 CustomTextField(
@@ -64,7 +69,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   hint: 'Email',
                   prefixIcon: Icons.email,
                   keyboardType: TextInputType.emailAddress,
-                  validator: (v) => v != null && v.contains('@') ? null : 'Enter a valid email',
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Required';
+                    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v)) return 'Enter a valid email';
+                    return null;
+                  },
                 ),
                 SizedBox(height: 16.h),
                 CustomTextField(
@@ -72,7 +81,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   hint: 'Password (min 6 characters)',
                   prefixIcon: Icons.lock,
                   obscureText: true,
-                  validator: (v) => v != null && v.length >= 6 ? null : 'Password too short',
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Required';
+                    if (v.length < 6) return 'Password must be at least 6 characters';
+                    return null;
+                  },
                 ),
                 SizedBox(height: 24.h),
                 BlocConsumer<AuthBloc, AuthState>(

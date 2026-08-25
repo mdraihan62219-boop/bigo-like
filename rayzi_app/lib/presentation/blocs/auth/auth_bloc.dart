@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -16,6 +17,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthLogoutRequested>(_onLogoutRequested);
     on<AuthGuestRequested>(_onGuestRequested);
     on<AuthGoogleRequested>(_onGoogleRequested);
+  }
+
+  /// Extract a clean, user-facing error message from a caught exception.
+  static String _friendlyError(Object e) {
+    if (e is DioException) {
+      // Backend returns { success: false, error: "..." } for 4xx responses.
+      final body = e.response?.data;
+      if (body is Map && body['error'] is String) return body['error'] as String;
+      if (body is Map && body['message'] is String) return body['message'] as String;
+      if (e.response?.statusCode == 401) return 'Invalid credentials';
+      if (e.response?.statusCode == 400) return 'Bad request — please check your input';
+      if (e.type == DioExceptionType.connectionTimeout) return 'Connection timed out';
+      if (e.type == DioExceptionType.connectionError) return 'No internet connection';
+    }
+    return e.toString().replaceFirst('Exception: ', '');
   }
 
   Future<void> _onAuthCheckRequested(AuthCheckRequested event, Emitter<AuthState> emit) async {
@@ -52,7 +68,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       });
       emit(AuthAuthenticated(await _persistSession(response.data['data'])));
     } catch (e) {
-      emit(AuthError(e.toString()));
+      emit(AuthError(_friendlyError(e)));
     }
   }
 
@@ -65,7 +81,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       });
       emit(AuthAuthenticated(await _persistSession(response.data['data'])));
     } catch (e) {
-      emit(AuthError(e.toString()));
+      emit(AuthError(_friendlyError(e)));
     }
   }
 
@@ -103,9 +119,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       });
       emit(AuthAuthenticated(await _persistSession(response.data['data'])));
     } on GoogleAuthConfigurationException catch (e) {
-      emit(AuthError(e.toString()));
+      emit(AuthError(_friendlyError(e)));
     } catch (e) {
-      emit(AuthError(e.toString()));
+      emit(AuthError(_friendlyError(e)));
     }
   }
 
