@@ -23,6 +23,7 @@ const BUCKET_RULES: Record<string, { mimes: RegExp; exts: string[] }> = {
   },
   'gift-animations': { mimes: /^image\/(gif|webp|png)$|^video\/mp4$/, exts: ['gif', 'webp', 'png', 'mp4'] },
   'room-covers': { mimes: /^image\/(jpeg|png|webp)$/, exts: ['jpg', 'jpeg', 'png', 'webp'] },
+  'banners': { mimes: /^image\/(jpeg|png|webp)$/, exts: ['jpg', 'jpeg', 'png', 'webp'] },
 }
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024 // 10 MB

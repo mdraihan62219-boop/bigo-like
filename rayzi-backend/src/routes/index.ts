@@ -22,6 +22,8 @@ import inboxRoutes from './inbox.routes'
 import uploadRoutes from './upload.routes'
 import gamesRoutes from './games.routes'
 import groupCallRoutes from './groupCall.routes'
+import announcementRoutes from './announcement.routes'
+import promoBannerRoutes from './promoBanner.routes'
 
 const router = Router()
 
@@ -48,5 +50,7 @@ router.use('/inbox', inboxRoutes)
 router.use('/uploads', uploadRoutes)
 router.use('/games', gamesRoutes)
 router.use('/group-calls', groupCallRoutes)
+router.use('/announcements', announcementRoutes)
+router.use('/promo-banners', promoBannerRoutes)
 
 export default router
